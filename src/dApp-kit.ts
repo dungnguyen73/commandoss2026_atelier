@@ -3,6 +3,7 @@ import { SuiGrpcClient } from "@mysten/sui/grpc";
 
 // TODO (Phase 2): Replace with deployed ChainPassport package IDs after `sui move publish`
 const DEVNET_COUNTER_PACKAGE_ID = "";
+const TESTNET_CHAIN_PASSPORT_PACKAGE_ID = "0x147d9fa6a152df85ec449aadad46ac51d240013f94907ef979cdaf71f9115323";
 const TESTNET_COUNTER_PACKAGE_ID = "";
 const MAINNET_COUNTER_PACKAGE_ID = "";
 
@@ -19,8 +20,11 @@ const MVR_OVERRIDES = {
       "@local-pkg/counter": MAINNET_COUNTER_PACKAGE_ID,
     },
   },
-  testnet: TESTNET_COUNTER_PACKAGE_ID && {
-    packages: { "@local-pkg/counter": TESTNET_COUNTER_PACKAGE_ID },
+  testnet: {
+    packages: {
+      "@local-pkg/counter": TESTNET_COUNTER_PACKAGE_ID,
+      "@local-pkg/chain-passport": TESTNET_CHAIN_PASSPORT_PACKAGE_ID,
+    },
   },
   devnet: DEVNET_COUNTER_PACKAGE_ID && {
     packages: { "@local-pkg/counter": DEVNET_COUNTER_PACKAGE_ID },

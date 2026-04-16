@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { NavLink, useLocation } from "react-router-dom";
+import { NavLink } from "react-router-dom";
 import { ConnectButton } from "@mysten/dapp-kit-react/ui";
 import { Menu, X, Leaf } from "lucide-react";
 import { cn } from "../../lib/utils";
@@ -50,12 +50,6 @@ function NavItem({
 
 export function Header() {
   const [menuOpen, setMenuOpen] = useState(false);
-  const location = useLocation();
-
-  // Close menu on route change
-  useState(() => {
-    setMenuOpen(false);
-  });
 
   return (
     <header className="glass-nav sticky top-0 z-50">

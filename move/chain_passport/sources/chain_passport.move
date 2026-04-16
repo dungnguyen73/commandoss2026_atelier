@@ -38,7 +38,7 @@ module chain_passport::chain_passport {
     }
 
     /// Create a new OriginItem and transfer it to the sender.
-    public entry fun create_origin_item(
+    public fun create_origin_item(
         name: String,
         category: String,
         quantity: String,
@@ -89,7 +89,7 @@ module chain_passport::chain_passport {
     }
 
     /// Add a new event to an existing OriginItem.
-    public entry fun add_event(
+    public fun add_event(
         item: &mut OriginItem,
         event_type: String,
         location: String,
@@ -112,7 +112,7 @@ module chain_passport::chain_passport {
     }
 
     /// Transfer an OriginItem to a new owner.
-    public entry fun transfer_item(
+    public fun transfer_item(
         item: OriginItem,
         recipient: address,
         _ctx: &mut TxContext

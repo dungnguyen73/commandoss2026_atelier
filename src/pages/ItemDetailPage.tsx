@@ -10,45 +10,87 @@ import {
   Truck,
   CheckCircle2,
   PackagePlus,
+  Loader2,
+  AlertCircle,
 } from "lucide-react";
 import { PageContainer } from "../components/layout/PageContainer";
 import { Button } from "../components/ui/button";
 import { StatusBadge } from "../components/shared/StatusBadge";
+import { useBatchData } from "../hooks/useBatchData";
+import QRCode from "react-qr-code";
 
-const PLACEHOLDER_EVENTS = [
-  {
-    icon: PackagePlus,
-    label: "Batch Created",
-    location: "Chiang Mai Organic Farm",
-    date: "Apr 2, 2026 · 09:14 AM",
-    note: "Initial registration by producer. GAP certified origin.",
-    isFirst: true,
-  },
-  {
-    icon: Truck,
-    label: "In Transit",
-    location: "Mae Rim Processing Centre",
-    date: "Apr 5, 2026 · 01:30 PM",
-    note: "Transported to milling facility. Temperature maintained at 20°C.",
-    isFirst: false,
-  },
-  {
-    icon: CheckCircle2,
-    label: "Delivered",
-    location: "Bangkok Central Depot",
-    date: "Apr 9, 2026 · 11:00 AM",
-    note: "Received by verified distributor. Quantity confirmed.",
-    isFirst: false,
-  },
-];
+function formatDate(timestamp: string | number) {
+  const date = new Date(Number(timestamp));
+  return date.toLocaleString("en-US", {
+    month: "short",
+    day: "numeric",
+    year: "numeric",
+    hour: "2-digit",
+    minute: "2-digit",
+  });
+}
+
+function getEventIcon(type: string) {
+  switch (type.toLowerCase()) {
+    case "created":
+      return PackagePlus;
+    case "transport":
+    case "shipping":
+      return Truck;
+    case "delivered":
+      return CheckCircle2;
+    default:
+      return Package;
+  }
+}
 
 export default function ItemDetailPage() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
+  const { batch, isLoading, error } = useBatchData(id);
 
   function handleCopy() {
-    navigator.clipboard.writeText(window.location.href).catch(() => {});
+    navigator.clipboard.writeText(window.location.href).catch(() => { });
   }
+
+  if (isLoading) {
+    return (
+      <PageContainer>
+        <div className="flex flex-col items-center justify-center py-20 text-muted-foreground">
+          <Loader2 className="h-10 w-10 animate-spin" />
+          <p className="mt-4 font-medium">Loading batch record from SUI...</p>
+        </div>
+      </PageContainer>
+    );
+  }
+
+  if (error || !batch) {
+    return (
+      <PageContainer>
+        <div className="flex flex-col items-center justify-center py-20 text-center">
+          <div className="mb-4 rounded-full bg-red-50 p-4 text-red-500">
+            <AlertCircle className="h-10 w-10" />
+          </div>
+          <h1 className="text-xl font-bold text-[var(--color-foreground)]">Batch Not Found</h1>
+          <p className="mt-2 text-[var(--color-muted-foreground)]">
+            The batch ID you provided could not be found on the blockchain.
+          </p>
+          <Button variant="secondary" onClick={() => navigate("/scan")} className="mt-6">
+            Try Scanning Again
+          </Button>
+        </div>
+      </PageContainer>
+    );
+  }
+
+  const events = (batch.history || []).map((ev: any, i: number) => ({
+    icon: getEventIcon(ev.event_type),
+    label: ev.event_type,
+    location: ev.location,
+    date: formatDate(ev.timestamp),
+    note: ev.note,
+    isFirst: i === 0,
+  }));
 
   return (
     <PageContainer>
@@ -74,16 +116,16 @@ export default function ItemDetailPage() {
                   Origin Passport
                 </p>
                 <h1 className="font-display text-2xl font-bold leading-tight text-[var(--color-foreground)]">
-                  Jasmine Rice Batch #001
+                  {batch.name}
                 </h1>
                 <div className="flex flex-wrap items-center gap-3 text-sm text-[var(--color-muted-foreground)]">
                   <span className="flex items-center gap-1">
                     <MapPin className="h-3.5 w-3.5" />
-                    Chiang Mai, Thailand
+                    {batch.province}
                   </span>
                   <span className="flex items-center gap-1">
                     <Calendar className="h-3.5 w-3.5" />
-                    Apr 2, 2026
+                    {new Date(Number(batch.created_at)).toLocaleDateString()}
                   </span>
                 </div>
               </div>
@@ -98,12 +140,12 @@ export default function ItemDetailPage() {
             </h2>
             <dl className="grid grid-cols-2 gap-x-6 gap-y-5 sm:grid-cols-3">
               {[
-                { label: "Category", value: "Grains" },
-                { label: "Quantity", value: "500 kg" },
-                { label: "Origin Farm", value: "Mae Taeng Farm" },
-                { label: "Province", value: "Chiang Mai" },
-                { label: "Creator", value: "0x4f2a…8c3d" },
-                { label: "Object ID", value: id ?? "—" },
+                { label: "Category", value: batch.category },
+                { label: "Quantity", value: batch.quantity },
+                { label: "Origin Farm", value: batch.farm },
+                { label: "Province", value: batch.province },
+                { label: "Creator", value: `${batch.creator.slice(0, 6)}…${batch.creator.slice(-4)}` },
+                { label: "Object ID", value: id?.slice(0, 10) + "..." },
               ].map(({ label, value }) => (
                 <div key={label}>
                   <dt className="mb-0.5 text-xs font-medium text-[var(--color-muted-foreground)]">
@@ -122,40 +164,43 @@ export default function ItemDetailPage() {
             <h2 className="mb-6 font-display text-sm font-semibold uppercase tracking-widest text-[var(--color-muted-foreground)]">
               Provenance Timeline
             </h2>
-            <ol className="space-y-0">
-              {PLACEHOLDER_EVENTS.map(({ icon: Icon, label, location, date, note, isFirst }, i) => (
-                <li key={i} className="flex gap-4">
-                  {/* Node + connector */}
-                  <div className="flex flex-col items-center">
-                    <span
-                      className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-full ${
-                        isFirst
+            {events.length > 0 ? (
+              <ol className="space-y-0">
+                {events.map(({ icon: Icon, label, location, date, note, isFirst }: any, i: number) => (
+                  <li key={i} className="flex gap-4">
+                    {/* Node + connector */}
+                    <div className="flex flex-col items-center">
+                      <span
+                        className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-full ${isFirst
                           ? "bg-[var(--color-primary)] text-white"
                           : "bg-[var(--color-surface-low)] text-[var(--color-muted-foreground)]"
-                      }`}
-                    >
-                      <Icon className="h-4 w-4" />
-                    </span>
-                    {i < PLACEHOLDER_EVENTS.length - 1 && (
-                      <span className="mt-1 h-full w-px bg-[var(--color-border)]" />
-                    )}
-                  </div>
+                          }`}
+                      >
+                        <Icon className="h-4 w-4" />
+                      </span>
+                      {i < events.length - 1 && (
+                        <span className="mt-1 h-full w-px bg-[var(--color-border)]" />
+                      )}
+                    </div>
 
-                  {/* Content */}
-                  <div className="pb-8">
-                    <p className="font-semibold text-[var(--color-foreground)]">{label}</p>
-                    <p className="mt-0.5 flex items-center gap-1 text-xs text-[var(--color-muted-foreground)]">
-                      <MapPin className="h-3 w-3 shrink-0" />
-                      {location}
-                    </p>
-                    <p className="mt-0.5 text-xs text-[var(--color-muted-foreground)]">{date}</p>
-                    <p className="mt-2 max-w-sm text-sm text-[var(--color-muted-foreground)]">
-                      {note}
-                    </p>
-                  </div>
-                </li>
-              ))}
-            </ol>
+                    {/* Content */}
+                    <div className="pb-8">
+                      <p className="font-semibold text-[var(--color-foreground)]">{label}</p>
+                      <p className="mt-0.5 flex items-center gap-1 text-xs text-[var(--color-muted-foreground)]">
+                        <MapPin className="h-3 w-3 shrink-0" />
+                        {location}
+                      </p>
+                      <p className="mt-0.5 text-xs text-[var(--color-muted-foreground)]">{date}</p>
+                      <p className="mt-2 max-w-sm text-sm text-[var(--color-muted-foreground)]">
+                        {note}
+                      </p>
+                    </div>
+                  </li>
+                ))}
+              </ol>
+            ) : (
+              <p className="text-sm text-[var(--color-muted-foreground)]">No events recorded yet.</p>
+            )}
           </div>
         </div>
 
@@ -174,15 +219,18 @@ export default function ItemDetailPage() {
             </div>
           </div>
 
-          {/* QR placeholder */}
-          <div className="flex flex-col items-center gap-3 rounded-2xl bg-[var(--color-card)] p-6 shadow-[var(--shadow-card)]">
-            <div
-              className="flex aspect-square w-full max-w-[160px] items-center justify-center rounded-xl bg-[var(--color-surface-low)]"
-              aria-label="QR code placeholder"
-            >
-              <Package className="h-10 w-10 text-[var(--color-muted-foreground)]" strokeWidth={1} />
+          {/* QR Code */}
+          <div className="flex flex-col items-center gap-4 rounded-2xl bg-[var(--color-card)] p-6 shadow-[var(--shadow-card)]">
+            <div className="bg-white p-2 rounded-xl shadow-sm">
+              <QRCode
+                value={window.location.href}
+                size={160}
+                level="H"
+              />
             </div>
-            <p className="text-xs text-[var(--color-muted-foreground)]">QR generation coming in Phase 3</p>
+            <p className="text-center text-xs font-medium text-[var(--color-muted-foreground)] uppercase tracking-wider">
+              Batch QR Passport
+            </p>
           </div>
 
           {/* Action buttons */}
@@ -191,7 +239,7 @@ export default function ItemDetailPage() {
               id="item-action-share"
               variant="secondary"
               className="w-full justify-start gap-2"
-              onClick={() => {}}
+              onClick={() => { }}
             >
               <Share2 className="h-4 w-4" />
               Share Passport

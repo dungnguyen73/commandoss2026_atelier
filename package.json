@@ -7,7 +7,9 @@
     "dev": "vite",
     "build": "tsc && vite build",
     "preview": "vite preview",
-    "codegen": "rm -rf src/contracts && sui-ts-codegen generate"
+    "codegen": "rm -rf src/contracts && sui-ts-codegen generate",
+    "test": "vitest run",
+    "test:watch": "vitest"
   },
   "dependencies": {
     "@mysten/dapp-kit-react": "^2.0.1",
@@ -15,21 +17,29 @@
     "@nanostores/react": "^1.0.0",
     "@tanstack/react-query": "^5.90.16",
     "clsx": "^2.1.1",
+    "html5-qrcode": "^2.3.8",
     "lucide-react": "^0.562.0",
     "react": "^19.2.3",
     "react-dom": "^19.2.3",
+    "react-qr-code": "^2.0.18",
     "react-router-dom": "^7.14.1",
     "tailwind-merge": "^3.4.0"
   },
   "devDependencies": {
     "@mysten/codegen": "^0.8.4",
     "@tailwindcss/vite": "^4.0.0",
+    "@testing-library/dom": "^10.4.1",
+    "@testing-library/jest-dom": "^6.9.1",
+    "@testing-library/react": "^16.3.2",
+    "@types/node": "^25.6.0",
     "@types/react": "^19.2.8",
     "@types/react-dom": "^19.2.3",
     "@vitejs/plugin-react-swc": "^4.2.2",
+    "jsdom": "^27.0.1",
     "prettier": "^3.7.4",
     "tailwindcss": "^4.1.18",
     "typescript": "^5.9.3",
-    "vite": "^8.0.5"
+    "vite": "^8.0.5",
+    "vitest": "^3.2.4"
   }
 }

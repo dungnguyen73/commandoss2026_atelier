@@ -28,16 +28,16 @@ export function EmptyState({
       )}
     >
       {icon && (
-        <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-[var(--color-surface-low)] text-[var(--color-muted-foreground)]">
+        <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-(--color-surface-low) text-muted-foreground">
           {icon}
         </div>
       )}
       <div className="space-y-1">
-        <p className="text-base font-semibold text-[var(--color-foreground)]">
+        <p className="text-base font-semibold text-(--color-foreground)">
           {title}
         </p>
         {description && (
-          <p className="max-w-xs text-sm text-[var(--color-muted-foreground)]">
+          <p className="max-w-xs text-sm text-muted-foreground">
             {description}
           </p>
         )}

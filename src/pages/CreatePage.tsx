@@ -69,53 +69,6 @@ const FIELDS: FieldProps[] = [
 const inputBase =
   "w-full rounded-xl bg-[var(--color-surface-low)] px-4 py-2.5 text-sm text-[var(--color-foreground)] placeholder:text-[var(--color-muted-foreground)] outline-none transition-all duration-150 focus:bg-[var(--color-surface-lowest)] focus:ring-2 focus:ring-[var(--color-primary)]/30";
 
-function FormField({ id, name, label, placeholder, type = "text", required, hint, as = "input", options }: FieldProps) {
-  return (
-    <div className="flex flex-col gap-1.5">
-      <label htmlFor={id} className="text-sm font-medium text-[var(--color-foreground)]">
-        {label}
-        {required && <span className="ml-1 text-[var(--color-primary)]">*</span>}
-      </label>
-
-      {as === "select" && (
-        <select id={id} name={name} className={inputBase} required={required}>
-          <option value="">Select {label}</option>
-          {options?.map((opt) => (
-            <option key={opt} value={opt}>
-              {opt}
-            </option>
-          ))}
-        </select>
-      )}
-
-      {as === "textarea" && (
-        <textarea
-          id={id}
-          name={name}
-          placeholder={placeholder}
-          rows={3}
-          className={`${inputBase} resize-none`}
-        />
-      )}
-
-      {as === "input" && (
-        <input
-          id={id}
-          name={name}
-          type={type}
-          placeholder={placeholder}
-          required={required}
-          className={inputBase}
-        />
-      )}
-
-      {hint && (
-        <p className="text-xs text-[var(--color-muted-foreground)]">{hint}</p>
-      )}
-    </div>
-  );
-}
-
 export default function CreatePage() {
   const account = useCurrentAccount();
   const dAppKit = useDAppKit();
@@ -125,20 +78,35 @@ export default function CreatePage() {
   const [isMinting, setIsMinting] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [formData, setFormData] = useState({
+    name: "",
+    category: "",
+    quantity: "",
+    farm: "",
+    province: "",
+    certification: "",
+  });
 
-  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+  const handleInputChange = (
+    e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>
+  ) => {
+    const { name, value } = e.target;
+    setFormData((prev) => ({ ...prev, [name]: value }));
+  };
+
+  const isFormValid = useMemo(() => {
+    return (
+      formData.name.trim() !== "" &&
+      formData.category.trim() !== "" &&
+      formData.quantity.trim() !== "" &&
+      formData.farm.trim() !== "" &&
+      formData.province.trim() !== ""
+    );
+  }, [formData]);
+
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!account) return;
-
-    const formData = new FormData(e.currentTarget);
-    const data = {
-      name: formData.get("name") as string,
-      category: formData.get("category") as string,
-      quantity: formData.get("quantity") as string,
-      farm: formData.get("farm") as string,
-      province: formData.get("province") as string,
-      certification: (formData.get("certification") as string) || "N/A",
-    };
+    if (!account || !isFormValid) return;
 
     setIsMinting(true);
     setError(null);
@@ -147,12 +115,12 @@ export default function CreatePage() {
       const tx = new Transaction();
       createOriginItem({
         arguments: [
-          data.name,
-          data.category,
-          data.quantity,
-          data.farm,
-          data.province,
-          data.certification,
+          formData.name,
+          formData.category,
+          formData.quantity,
+          formData.farm,
+          formData.province,
+          formData.certification || "N/A",
         ]
       })(tx);
 
@@ -217,7 +185,56 @@ export default function CreatePage() {
           </legend>
 
           {FIELDS.map((field) => (
-            <FormField key={field.id} {...field} />
+            <div key={field.id} className="flex flex-col gap-1.5">
+              <label htmlFor={field.id} className="text-sm font-medium text-[var(--color-foreground)]">
+                {field.label}
+                {field.required && <span className="ml-1 text-[var(--color-primary)]">*</span>}
+              </label>
+
+              {field.as === "select" ? (
+                <select 
+                  id={field.id} 
+                  name={field.name} 
+                  className={inputBase} 
+                  required={field.required}
+                  value={formData[field.name as keyof typeof formData]}
+                  onChange={handleInputChange}
+                >
+                  <option value="">Select {field.label}</option>
+                  {field.options?.map((opt) => (
+                    <option key={opt} value={opt}>
+                      {opt}
+                    </option>
+                  ))}
+                </select>
+              ) : field.as === "textarea" ? (
+                <textarea
+                  id={field.id}
+                  name={field.name}
+                  placeholder={field.placeholder}
+                  rows={3}
+                  className={`${inputBase} resize-none`}
+                  required={field.required}
+                  value={formData[field.name as keyof typeof formData]}
+                  onChange={handleInputChange}
+                />
+              ) : (
+                <input
+                  id={field.id}
+                  name={field.name}
+                  type={field.type || "text"}
+                  placeholder={field.placeholder}
+                  required={field.required}
+                  className={inputBase}
+                  value={formData[field.name as keyof typeof formData]}
+                  onChange={handleInputChange}
+                />
+              )}
+
+              {field.hint && (
+                <p className="text-xs text-[var(--color-muted-foreground)]">{field.hint}</p>
+              )}
+            </div>
           ))}
         </fieldset>
 
@@ -245,7 +262,7 @@ export default function CreatePage() {
             id="create-batch-submit"
             type="submit"
             variant="primary"
-            disabled={isMinting || !account}
+            disabled={isMinting || !account || !isFormValid}
             className="w-full py-6 text-lg font-semibold"
           >
             {isMinting ? (

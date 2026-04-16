@@ -71,12 +71,12 @@ export default function LandingPage() {
             Food Provenance on SUI Blockchain
           </span>
 
-          <h1 className="font-display text-4xl font-extrabold leading-tight tracking-tight text-[var(--color-foreground)] sm:text-5xl md:text-6xl">
+          <h1 className="font-display text-4xl font-extrabold leading-tight tracking-tight text-(--color-foreground) sm:text-5xl md:text-6xl">
             Every batch tells{" "}
             <span className="text-gradient-primary">a trusted story</span>
           </h1>
 
-          <p className="mx-auto max-w-xl text-base leading-relaxed text-[var(--color-muted-foreground)] sm:text-lg">
+          <p className="mx-auto max-w-xl text-base leading-relaxed text-muted-foreground sm:text-lg">
             ChainPassport is a provenance platform for food origin. Producers
             register batches on-chain, logistics teams record the journey, and
             consumers verify authenticity with a single QR scan.
@@ -108,16 +108,16 @@ export default function LandingPage() {
 
         {/* Hero card preview */}
         <div className="relative mt-16 w-full max-w-md">
-          <div className="rounded-2xl bg-[var(--color-card)] p-6 shadow-[var(--shadow-card)]">
+          <div className="rounded-2xl bg-(--color-card) p-6 shadow-(--shadow-card)">
             <div className="flex items-start justify-between">
               <div className="space-y-1">
-                <p className="text-xs font-semibold uppercase tracking-widest text-[var(--color-muted-foreground)]">
+                <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">
                   Origin Passport
                 </p>
-                <h2 className="font-display text-xl font-bold text-[var(--color-foreground)]">
+                <h2 className="font-display text-xl font-bold text-(--color-foreground)">
                   Jasmine Rice — Batch 0x4f2a
                 </h2>
-                <p className="text-sm text-[var(--color-muted-foreground)]">
+                <p className="text-sm text-muted-foreground">
                   Chiang Mai, Thailand · Apr 2026
                 </p>
               </div>
@@ -137,17 +137,17 @@ export default function LandingPage() {
                 <div key={i} className="flex gap-3">
                   <div className="flex flex-col items-center">
                     <span
-                      className={`h-2.5 w-2.5 rounded-full ${i === 0 ? "bg-[var(--color-primary)]" : "bg-slate-300"}`}
+                      className={`h-2.5 w-2.5 rounded-full ${i === 0 ? "bg-(--color-primary)" : "bg-slate-300"}`}
                     />
                     {i < arr.length - 1 && (
                       <span className="mt-1 h-full w-px bg-slate-200" />
                     )}
                   </div>
                   <div className="pb-3">
-                    <p className="text-sm font-semibold text-[var(--color-foreground)]">
+                    <p className="text-sm font-semibold text-(--color-foreground)">
                       {event.label}
                     </p>
-                    <p className="text-xs text-[var(--color-muted-foreground)]">
+                    <p className="text-xs text-muted-foreground">
                       {event.loc} · {event.date}
                     </p>
                   </div>
@@ -160,18 +160,18 @@ export default function LandingPage() {
 
       {/* ── How it works ─────────────────────────────────────────── */}
       <section
-        className="bg-[var(--color-surface-low)] px-4 py-20 sm:px-6"
+        className="bg-(--color-surface-low) px-4 py-20 sm:px-6"
         aria-labelledby="how-it-works-heading"
       >
         <div className="mx-auto max-w-5xl">
           <div className="mb-12 text-center">
             <h2
               id="how-it-works-heading"
-              className="font-display text-3xl font-bold text-[var(--color-foreground)]"
+              className="font-display text-3xl font-bold text-(--color-foreground)"
             >
               How it works
             </h2>
-            <p className="mt-3 text-[var(--color-muted-foreground)]">
+            <p className="mt-3 text-muted-foreground">
               Three simple steps from farm to verified.
             </p>
           </div>
@@ -180,7 +180,7 @@ export default function LandingPage() {
             {HOW_IT_WORKS.map(({ step, icon: Icon, title, description }) => (
               <div
                 key={step}
-                className="group rounded-2xl bg-[var(--color-card)] p-8 shadow-[var(--shadow-card)] transition-shadow duration-200 hover:shadow-[0px_24px_48px_rgba(19,27,46,0.10)]"
+                className="group rounded-2xl bg-(--color-card) p-8 shadow-[var(--shadow-card)] transition-shadow duration-200 hover:shadow-[0px_24px_48px_rgba(19,27,46,0.10)]"
               >
                 <span className="font-display text-4xl font-extrabold text-emerald-100">
                   {step}
@@ -188,10 +188,10 @@ export default function LandingPage() {
                 <div className="mt-4 flex h-11 w-11 items-center justify-center rounded-xl bg-emerald-50">
                   <Icon className="h-5 w-5 text-[var(--color-primary)]" />
                 </div>
-                <h3 className="mt-4 font-display text-lg font-bold text-[var(--color-foreground)]">
+                <h3 className="mt-4 font-display text-lg font-bold text-(--color-foreground)">
                   {title}
                 </h3>
-                <p className="mt-2 text-sm leading-relaxed text-[var(--color-muted-foreground)]">
+                <p className="mt-2 text-sm leading-relaxed text-muted-foreground">
                   {description}
                 </p>
               </div>
@@ -209,11 +209,11 @@ export default function LandingPage() {
           <div className="mb-12 text-center">
             <h2
               id="features-heading"
-              className="font-display text-3xl font-bold text-[var(--color-foreground)]"
+              className="font-display text-3xl font-bold text-(--color-foreground)"
             >
               Built for trust
             </h2>
-            <p className="mt-3 text-[var(--color-muted-foreground)]">
+            <p className="mt-3 text-muted-foreground">
               Provenance infrastructure designed for the real world.
             </p>
           </div>
@@ -222,15 +222,15 @@ export default function LandingPage() {
             {FEATURES.map(({ icon: Icon, title, description }) => (
               <div
                 key={title}
-                className="flex flex-col gap-3 rounded-2xl bg-[var(--color-card)] p-7 shadow-[var(--shadow-card)]"
+                className="flex flex-col gap-3 rounded-2xl bg-(--color-card) p-7 shadow-[var(--shadow-card)]"
               >
                 <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-emerald-50">
                   <Icon className="h-5 w-5 text-[var(--color-primary)]" />
                 </div>
-                <h3 className="font-display text-base font-semibold text-[var(--color-foreground)]">
+                <h3 className="font-display text-base font-semibold text-(--color-foreground)">
                   {title}
                 </h3>
-                <p className="text-sm leading-relaxed text-[var(--color-muted-foreground)]">
+                <p className="text-sm leading-relaxed text-muted-foreground">
                   {description}
                 </p>
               </div>

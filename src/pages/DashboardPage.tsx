@@ -49,10 +49,10 @@ export default function DashboardPage() {
       {/* ── Page header ── */}
       <div className="mb-8 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <h1 className="font-display text-2xl font-bold text-[var(--color-foreground)]">
+          <h1 className="font-display text-2xl font-bold text-(--color-foreground)">
             Dashboard
           </h1>
-          <p className="mt-1 text-sm text-[var(--color-muted-foreground)]">
+          <p className="mt-1 text-sm text-muted-foreground">
             Track and manage your registered batches.
           </p>
         </div>
@@ -69,7 +69,7 @@ export default function DashboardPage() {
 
       {/* ── Role tabs ── */}
       <div
-        className="mb-8 inline-flex rounded-xl bg-[var(--color-surface-low)] p-1"
+        className="mb-8 inline-flex rounded-xl bg-(--color-surface-low) p-1"
         role="tablist"
         aria-label="Dashboard role"
       >
@@ -83,8 +83,8 @@ export default function DashboardPage() {
             className={cn(
               "rounded-lg px-4 py-2 text-sm font-medium transition-all duration-150",
               activeRole === role
-                ? "bg-[var(--color-card)] text-[var(--color-primary)] shadow-[var(--shadow-sm)]"
-                : "text-[var(--color-muted-foreground)] hover:text-[var(--color-foreground)]",
+                ? "bg-(--color-card) text-(--color-primary) shadow-(--shadow-sm)"
+                : "text-muted-foreground hover:text-(--color-foreground)",
             )}
           >
             {role}
@@ -95,7 +95,7 @@ export default function DashboardPage() {
       {/* ── Content by role ── */}
       {activeRole === "Producer" && (
         <div className="space-y-3">
-          <p className="mb-4 text-xs font-semibold uppercase tracking-widest text-[var(--color-muted-foreground)]">
+          <p className="mb-4 text-xs font-semibold uppercase tracking-widest text-muted-foreground">
             Your Registered Batches
           </p>
           {PLACEHOLDER_ITEMS.map((item) => (

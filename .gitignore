@@ -40,3 +40,6 @@ traces/*
 .trace
 .coverage*
 Pub.*.toml
+
+
+package_summaries

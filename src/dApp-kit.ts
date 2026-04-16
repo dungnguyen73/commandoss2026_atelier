@@ -1,10 +1,10 @@
 import { createDAppKit } from "@mysten/dapp-kit-react";
 import { SuiGrpcClient } from "@mysten/sui/grpc";
-import {
-  DEVNET_COUNTER_PACKAGE_ID,
-  TESTNET_COUNTER_PACKAGE_ID,
-  MAINNET_COUNTER_PACKAGE_ID,
-} from "./constants.ts";
+
+// TODO (Phase 2): Replace with deployed ChainPassport package IDs after `sui move publish`
+const DEVNET_COUNTER_PACKAGE_ID = "";
+const TESTNET_COUNTER_PACKAGE_ID = "";
+const MAINNET_COUNTER_PACKAGE_ID = "";
 
 const GRPC_URLS = {
   mainnet: "https://fullnode.mainnet.sui.io:443",

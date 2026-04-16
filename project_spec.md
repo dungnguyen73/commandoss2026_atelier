@@ -1,31 +1,22 @@
 # project_spec.md
 
 ## Project Name
-**ChainPassport**  
-A SUI-based provenance and traceability dApp for food origin tracking, expandable to luxury goods.
+**ChainPassport**
+
+A SUI-based provenance and traceability web app for food origin tracking, with future support for luxury item authentication.
 
 ---
 
 ## 1. Project Overview
 
 ### 1.1 Purpose
-ChainPassport is a web application that lets producers register food batches on-chain, logistics users add custody updates, and consumers or school admins verify origin by scanning a QR code. The goal is to provide a clear, tamper-resistant trust layer for food supply chains, starting with school food safety and later expanding to other provenance-heavy domains such as luxury items.[web:187][web:189]
+ChainPassport lets producers register food batches on-chain, logistics users add custody updates, and consumers or school admins verify origin by scanning a QR code. The app is designed as a digital passport for physical items, making the history of an item easy to trust and easy to read.
 
 ### 1.2 Product Vision
-The app should feel like a digital passport for physical items. Each product or batch gets a verifiable identity, a history of origin events, and a simple scan-to-view experience for end users.[web:189][web:190]
+The app should feel like a provenance verification tool, not a crypto app. It should be simple enough for non-technical users, especially school admins and consumers, while still being useful for producers and logistics operators.
 
 ### 1.3 MVP Goal
-The MVP must support:
-- wallet connect,
-- batch creation,
-- on-chain provenance record creation,
-- event history updates,
-- QR generation,
-- QR scanning,
-- item timeline display,
-- role-based dashboard views.
-
-The first release should be polished enough to demo in a hackathon, while remaining simple enough to implement quickly.[web:122][web:116]
+The MVP should support wallet connect, batch creation, on-chain provenance recording, event history updates, QR generation, QR scanning, item detail pages, and role-based dashboard views.
 
 ---
 
@@ -35,10 +26,10 @@ The first release should be polished enough to demo in a hackathon, while remain
 Creates a batch, enters origin information, and mints the on-chain record.
 
 ### 2.2 Logistics / Distributor
-Adds updates such as transport status, location, and temperature.
+Adds transport or custody updates such as location, status, and temperature.
 
 ### 2.3 School Admin / Buyer
-Verifies batch origin, reviews compliance, and checks whether the item can be trusted.
+Verifies batch origin, reviews compliance, and checks whether a batch can be trusted.
 
 ### 2.4 Consumer
 Scans a QR code and reads the origin timeline in a mobile-friendly view.
@@ -61,7 +52,7 @@ Uses the same system pattern to verify authenticity and ownership history for lu
 
 ### 3.2 Secondary Journeys
 - Search a batch by ID.
-- View all owned/created batches.
+- View all created or owned batches.
 - Add a new custody event.
 - Review trust/compliance status.
 - Share batch history link.
@@ -86,7 +77,7 @@ Uses the same system pattern to verify authenticity and ownership history for lu
   - origin farm,
   - province/region,
   - optional image,
-  - optional certificate or note.
+  - optional certification note.
 - Mint a corresponding on-chain object.
 - Generate QR code from the object ID.
 
@@ -101,8 +92,8 @@ Uses the same system pattern to verify authenticity and ownership history for lu
   - Verified.
 
 ### 4.4 Custody Updates
-- Add event to an existing batch.
-- Update owner/custodian.
+- Add an event to an existing batch.
+- Update owner or custodian.
 - Add transport or temperature info.
 - Record who performed the action.
 
@@ -156,27 +147,29 @@ For MVP, only the current owner can add or transfer updates. More advanced role 
 ## 6. Frontend Scope
 
 ### 6.1 Frontend Stack
-- Next.js
+- Vite
+- React
 - TypeScript
 - Tailwind CSS
 - shadcn/ui
 - @mysten/dapp-kit
 - SUI testnet integration
 - QR code generation and scanning libraries
+- React Router
 
 ### 6.2 Pages
-- `/` — landing page
-- `/dashboard` — role-based control panel
-- `/create` — create new batch
-- `/scan` — QR scanner
-- `/item/[id]` — item detail and timeline page
+- `/` landing page
+- `/dashboard`
+- `/create`
+- `/scan`
+- `/item/:id`
 
 ### 6.3 Core Components
 - Header
 - Footer
 - Wallet connect button
 - Role selector
-- Item card
+- Batch card
 - Timeline component
 - Event form
 - QR code card
@@ -359,8 +352,8 @@ The app should feel like:
 
 ### Frontend
 - keep components small and reusable
-- place shared UI in `components/ui`
-- keep page logic in route files
+- place shared UI in `src/components/ui`
+- keep page logic in route components
 - use TypeScript interfaces for item data
 
 ### Move

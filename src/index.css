@@ -1,39 +1,106 @@
 @import "tailwindcss";
 
+/* ─── ChainPassport Design Tokens ─────────────────────────────────────── */
 @theme {
-  --color-background: oklch(0.145 0 0);
-  --color-foreground: oklch(0.985 0 0);
-  --color-card: oklch(0.145 0 0);
-  --color-card-foreground: oklch(0.985 0 0);
-  --color-primary: oklch(0.985 0 0);
-  --color-primary-foreground: oklch(0.205 0 0);
-  --color-secondary: oklch(0.269 0 0);
-  --color-secondary-foreground: oklch(0.985 0 0);
-  --color-muted: oklch(0.269 0 0);
-  --color-muted-foreground: oklch(0.708 0 0);
-  --color-accent: oklch(0.269 0 0);
-  --color-accent-foreground: oklch(0.985 0 0);
-  --color-destructive: oklch(0.396 0.141 25.723);
-  --color-destructive-foreground: oklch(0.637 0.237 25.331);
-  --color-border: oklch(0.269 0 0);
-  --color-input: oklch(0.269 0 0);
-  --color-ring: oklch(0.556 0 0);
-  --color-sui: oklch(0.7 0.2 220);
+  /* Surface hierarchy (DESIGN.md §3) */
+  --color-background:            #faf8ff;
+  --color-foreground:            #131b2e;
+  --color-surface-low:           #f2f3ff;
+  --color-surface-lowest:        #ffffff;
+  --color-surface-bright:        #faf8ff;
 
-  --radius-sm: 0.25rem;
-  --radius-md: 0.375rem;
-  --radius-lg: 0.5rem;
-  --radius-xl: 0.75rem;
+  /* Card */
+  --color-card:                  #ffffff;
+  --color-card-foreground:       #131b2e;
+
+  /* Primary – trust green */
+  --color-primary:               #006e2f;
+  --color-primary-container:     #22c55e;
+  --color-primary-foreground:    #ffffff;
+
+  /* Secondary green-shade */
+  --color-secondary:             #2f6a3c;
+  --color-secondary-foreground:  #ffffff;
+
+  /* Muted / neutral */
+  --color-muted:                 #f2f3ff;
+  --color-muted-foreground:      rgba(19, 27, 46, 0.55);
+
+  /* Accent (same as surface-low for calm tonal shift) */
+  --color-accent:                #f2f3ff;
+  --color-accent-foreground:     #131b2e;
+
+  /* Outline variant – hairline only */
+  --color-outline-variant:       rgba(19, 27, 46, 0.12);
+  --color-border:                rgba(19, 27, 46, 0.12);
+  --color-input:                 #f2f3ff;
+  --color-ring:                  #006e2f;
+
+  /* Status colors */
+  --color-verified:              #006e2f;
+  --color-in-transit:            #0369a1;
+  --color-created:               #6b7280;
+  --color-pending:               #d97706;
+  --color-flagged:               #dc2626;
+
+  /* Destructive */
+  --color-destructive:           #dc2626;
+  --color-destructive-foreground:#ffffff;
+
+  /* Radius scale */
+  --radius-sm:   0.25rem;
+  --radius-md:   0.5rem;
+  --radius-lg:   0.75rem;
+  --radius-xl:   1rem;
+  --radius-2xl:  1.5rem;
+  --radius-full: 9999px;
+
+  /* Shadow token (DESIGN.md §5) */
+  --shadow-card:    0px 20px 40px rgba(19, 27, 46, 0.06);
+  --shadow-sm:      0px 2px 8px  rgba(19, 27, 46, 0.06);
+  --shadow-nav:     0px 1px 0px  rgba(19, 27, 46, 0.07);
 }
 
-* {
+/* ─── Global reset ─────────────────────────────────────────────────────── */
+*, *::before, *::after {
   border-color: var(--color-border);
+  box-sizing: border-box;
+}
+
+html {
+  scroll-behavior: smooth;
 }
 
 body {
   background-color: var(--color-background);
   color: var(--color-foreground);
-  font-family:
-    ui-sans-serif, system-ui, sans-serif, "Apple Color Emoji", "Segoe UI Emoji",
-    "Segoe UI Symbol", "Noto Color Emoji";
+  font-family: "Inter", ui-sans-serif, system-ui, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Display / heading text uses Manrope */
+h1, h2, h3, h4, h5, h6,
+.font-display {
+  font-family: "Manrope", ui-sans-serif, system-ui, sans-serif;
+}
+
+/* ─── Primary gradient utility ─────────────────────────────────────────── */
+.bg-primary-gradient {
+  background: linear-gradient(135deg, #006e2f 0%, #22c55e 100%);
+}
+
+.text-gradient-primary {
+  background: linear-gradient(135deg, #006e2f 0%, #22c55e 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+/* ─── Glass nav surface ─────────────────────────────────────────────────── */
+.glass-nav {
+  background: rgba(250, 248, 255, 0.85);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border-bottom: 1px solid rgba(19, 27, 46, 0.07);
 }

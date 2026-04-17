@@ -19,12 +19,14 @@ import {
 import { PageContainer } from "../components/layout/PageContainer";
 import { Button } from "../components/ui/button";
 import { StatusBadge } from "../components/shared/StatusBadge";
-import { useBatchData } from "../hooks/useBatchData";
-import QRCode from "react-qr-code";
+import { useCertificateData } from "../hooks/useCertificateData";
+import * as QRCodeModule from "react-qr-code";
+const QRCode = (QRCodeModule as any).default || QRCodeModule;
 import { useState, useMemo } from "react";
 import { useCurrentAccount, useDAppKit, CurrentAccountSigner } from "@mysten/dapp-kit-react";
 import { Transaction } from "@mysten/sui/transactions";
 import { addProvenanceEvent, transferCertificate } from "../contracts/atelier/atelier";
+import { ATELIER_PACKAGE_ID } from "../config/network";
 import type { CertStatus } from "../components/shared/StatusBadge";
 
 function formatDate(timestamp: string | number) {
@@ -73,8 +75,8 @@ export default function ItemDetailPage() {
     return null;
   }, [dAppKit]);
 
-  const { batch, ownerAddress, isLoading, error, refetch } = useBatchData(id);
-
+  const { certificate, ownerAddress, isLoading, error, refetch } = useCertificateData(id);
+  console.log("certificate", certificate);
   // Modal / Form states
   const [activeAction, setActiveAction] = useState<"none" | "event" | "transfer">("none");
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -85,7 +87,7 @@ export default function ItemDetailPage() {
   const [transferData, setTransferData] = useState({ recipient: "" });
 
   function handleCopy() {
-    navigator.clipboard.writeText(window.location.href).catch(() => {});
+    navigator.clipboard.writeText(window.location.href).catch(() => { });
   }
 
   const isOwner = !!account && !!ownerAddress && ownerAddress === account.address;
@@ -99,7 +101,7 @@ export default function ItemDetailPage() {
       if (!signer) throw new Error("Wallet signer not available.");
       const tx = new Transaction();
       addProvenanceEvent({
-        package: "0x3fbeaad9f99986663cdd4147dfe85d0c9d268c450477f9104d3159fe2c34da77",
+        package: ATELIER_PACKAGE_ID,
         arguments: [id, eventData.type, eventData.location, eventData.note || "N/A"],
       })(tx);
       await (signer as any).signAndExecuteTransaction({ transaction: tx });
@@ -122,7 +124,7 @@ export default function ItemDetailPage() {
       if (!signer) throw new Error("Wallet signer not available.");
       const tx = new Transaction();
       transferCertificate({
-        package: "0x3fbeaad9f99986663cdd4147dfe85d0c9d268c450477f9104d3159fe2c34da77",
+        package: ATELIER_PACKAGE_ID,
         arguments: [id, transferData.recipient],
       })(tx);
       await (signer as any).signAndExecuteTransaction({ transaction: tx });
@@ -147,7 +149,7 @@ export default function ItemDetailPage() {
     );
   }
 
-  if (error || !batch) {
+  if (error || !certificate) {
     return (
       <PageContainer>
         <div className="flex flex-col items-center justify-center py-20 text-center">
@@ -166,7 +168,7 @@ export default function ItemDetailPage() {
     );
   }
 
-  const events = (batch?.history || []).map((ev: any, i: number) => ({
+  const events = (certificate?.history || []).map((ev: any, i: number) => ({
     icon: getEventIcon(ev.event_type),
     label: ev.event_type,
     location: ev.location,
@@ -177,8 +179,8 @@ export default function ItemDetailPage() {
 
   // Derive display status — default "Verified" for on-chain objects without explicit status field
   const displayStatus: CertStatus =
-    (batch as any).status
-      ? ((batch as any).status as CertStatus)
+    certificate.status
+      ? (certificate.status as CertStatus)
       : "Verified";
 
   const inputBase =
@@ -211,17 +213,17 @@ export default function ItemDetailPage() {
                   Artisan Certificate
                 </p>
                 <h1 className="font-display text-2xl font-bold leading-tight text-[var(--color-foreground)]">
-                  {batch.name || "Untitled Certificate"}
+                  {certificate.name || "Untitled Certificate"}
                 </h1>
                 <div className="flex flex-wrap items-center gap-3 text-sm text-[var(--color-muted-foreground)]">
                   <span className="flex items-center gap-1">
                     <MapPin className="h-3.5 w-3.5" />
-                    {(batch as any).location ?? (batch as any).province ?? "Unknown"}
+                    {certificate.location || "Unknown"}
                   </span>
                   <span className="flex items-center gap-1">
                     <Calendar className="h-3.5 w-3.5" />
-                    {batch.created_at
-                      ? new Date(Number(batch.created_at)).toLocaleDateString()
+                    {certificate.created_at
+                      ? new Date(Number(certificate.created_at)).toLocaleDateString()
                       : "Unknown"}
                   </span>
                 </div>
@@ -237,12 +239,12 @@ export default function ItemDetailPage() {
             </h2>
             <dl className="grid grid-cols-2 gap-x-6 gap-y-5 sm:grid-cols-3">
               {[
-                { label: "Category",     value: batch.category || "N/A" },
-                { label: "Artisan",      value: (batch as any).artisan_name ?? (batch as any).quantity ?? "N/A" },
-                { label: "Location",     value: (batch as any).location ?? (batch as any).province ?? "N/A" },
-                { label: "Materials",    value: (batch as any).materials ?? (batch as any).farm ?? "N/A" },
-                { label: "Creator",      value: batch.creator ? `${String(batch.creator).slice(0, 6)}…${String(batch.creator).slice(-4)}` : "Unknown" },
-                { label: "Object ID",    value: id?.slice(0, 10) + "…" },
+                { label: "Category", value: certificate.category || "N/A" },
+                { label: "Artisan", value: certificate.artisan_name || "N/A" },
+                { label: "Location", value: certificate.location || "N/A" },
+                { label: "Materials", value: certificate.materials || "N/A" },
+                { label: "Creator", value: certificate.creator ? `${String(certificate.creator).slice(0, 6)}…${String(certificate.creator).slice(-4)}` : "Unknown" },
+                { label: "Object ID", value: id?.slice(0, 10) + "…" },
               ].map(({ label, value }) => (
                 <div key={label}>
                   <dt className="mb-0.5 text-xs font-medium text-[var(--color-muted-foreground)]">
@@ -255,14 +257,13 @@ export default function ItemDetailPage() {
               ))}
             </dl>
 
-            {/* Certificate note / story */}
-            {((batch as any).note || (batch as any).certification) && (
+            {certificate.note && (
               <div className="mt-5 border-t border-[var(--color-border)] pt-4">
                 <dt className="mb-1 text-xs font-medium text-[var(--color-muted-foreground)]">
                   Provenance Note
                 </dt>
                 <dd className="text-sm leading-relaxed text-[var(--color-foreground)]">
-                  {(batch as any).note || (batch as any).certification}
+                  {certificate.note}
                 </dd>
               </div>
             )}
@@ -383,11 +384,10 @@ export default function ItemDetailPage() {
                   <li key={i} className="flex gap-4">
                     <div className="flex flex-col items-center">
                       <span
-                        className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-full ${
-                          isFirst
+                        className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-full ${isFirst
                             ? "bg-[var(--color-primary)] text-white"
                             : "bg-[var(--color-surface-low)] text-[var(--color-muted-foreground)]"
-                        }`}
+                          }`}
                       >
                         <Icon className="h-4 w-4" />
                       </span>
@@ -422,17 +422,15 @@ export default function ItemDetailPage() {
 
           {/* Trust / Tampered badge */}
           <div
-            className={`rounded-2xl p-6 ring-1 ${
-              isTampered
+            className={`rounded-2xl p-6 ring-1 ${isTampered
                 ? "bg-red-50 ring-red-200"
                 : "bg-emerald-50 ring-emerald-200"
-            }`}
+              }`}
           >
             <div className="flex items-center gap-3">
               <div
-                className={`flex h-10 w-10 items-center justify-center rounded-xl ${
-                  isTampered ? "bg-red-100" : "bg-emerald-100"
-                }`}
+                className={`flex h-10 w-10 items-center justify-center rounded-xl ${isTampered ? "bg-red-100" : "bg-emerald-100"
+                  }`}
               >
                 {isTampered ? (
                   <AlertTriangle className="h-5 w-5 text-red-600" />
@@ -497,7 +495,7 @@ export default function ItemDetailPage() {
               id="item-action-share"
               variant="secondary"
               className="w-full justify-start gap-2"
-              onClick={() => {}}
+              onClick={() => { }}
             >
               <Share2 className="h-4 w-4" />
               Share Certificate

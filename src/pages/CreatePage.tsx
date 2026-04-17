@@ -4,6 +4,7 @@ import { Wallet, Loader2, CheckCircle2 } from "lucide-react";
 import { useCurrentAccount, useDAppKit, CurrentAccountSigner } from "@mysten/dapp-kit-react";
 import { Transaction } from "@mysten/sui/transactions";
 import { createCertificate } from "../contracts/atelier/atelier";
+import { ATELIER_PACKAGE_ID } from "../config/network";
 import { useState, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 
@@ -114,7 +115,7 @@ export default function CreatePage() {
     try {
       const tx = new Transaction();
       createCertificate({
-        package: "0x3fbeaad9f99986663cdd4147dfe85d0c9d268c450477f9104d3159fe2c34da77",
+        package: ATELIER_PACKAGE_ID,
         arguments: [
           formData.name,
           formData.category,

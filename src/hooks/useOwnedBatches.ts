@@ -1,4 +1,5 @@
 import { useQuery } from "@tanstack/react-query";
+import { ATELIER_PACKAGE_ID } from "../config/network";
 
 interface OriginHistory {
   event_type: string;
@@ -81,8 +82,7 @@ async function fetchOwnedOriginItems(address: string): Promise<RpcObject[]> {
           address,
           {
             filter: {
-              StructType:
-                "0x3fbeaad9f99986663cdd4147dfe85d0c9d268c450477f9104d3159fe2c34da77::atelier::ArtisanCertificate",
+              StructType: `${ATELIER_PACKAGE_ID}::atelier::ArtisanCertificate`,
             },
             options: {
               showType: true,

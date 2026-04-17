@@ -26,7 +26,8 @@ import { MoveStruct, normalizeMoveArguments, type RawTransactionArgument } from 
 import { bcs } from '@mysten/sui/bcs';
 import { type Transaction } from '@mysten/sui/transactions';
 const $moduleName = '@local-pkg/atelier::atelier';
-export const ProvenanceEvent = new MoveStruct({ name: `${$moduleName}::ProvenanceEvent`, fields: {
+export const ProvenanceEvent = new MoveStruct({
+    name: `${$moduleName}::ProvenanceEvent`, fields: {
         /** Short label for the event (e.g. "Certified", "Sold", "Exhibited"). */
         event_type: bcs.string(),
         /** Unix timestamp (ms) when this event was recorded on-chain. */
@@ -37,8 +38,10 @@ export const ProvenanceEvent = new MoveStruct({ name: `${$moduleName}::Provenanc
         note: bcs.string(),
         /** Address of the wallet that submitted this event. */
         actor: bcs.Address
-    } });
-export const ArtisanCertificate = new MoveStruct({ name: `${$moduleName}::ArtisanCertificate`, fields: {
+    }
+});
+export const ArtisanCertificate = new MoveStruct({
+    name: `${$moduleName}::ArtisanCertificate`, fields: {
         id: bcs.Address,
         /** Display name of the handmade piece. */
         name: bcs.string(),
@@ -62,27 +65,36 @@ export const ArtisanCertificate = new MoveStruct({ name: `${$moduleName}::Artisa
         creator: bcs.Address,
         /** Unix timestamp (ms) of the minting transaction. */
         created_at: bcs.u64()
-    } });
-export const CertificateCreated = new MoveStruct({ name: `${$moduleName}::CertificateCreated`, fields: {
+    }
+});
+export const CertificateCreated = new MoveStruct({
+    name: `${$moduleName}::CertificateCreated`, fields: {
         cert_id: bcs.Address,
         creator: bcs.Address,
         name: bcs.string()
-    } });
-export const CertificateEventAdded = new MoveStruct({ name: `${$moduleName}::CertificateEventAdded`, fields: {
+    }
+});
+export const CertificateEventAdded = new MoveStruct({
+    name: `${$moduleName}::CertificateEventAdded`, fields: {
         cert_id: bcs.Address,
         event_type: bcs.string(),
         actor: bcs.Address
-    } });
-export const CertificateTransferred = new MoveStruct({ name: `${$moduleName}::CertificateTransferred`, fields: {
+    }
+});
+export const CertificateTransferred = new MoveStruct({
+    name: `${$moduleName}::CertificateTransferred`, fields: {
         cert_id: bcs.Address,
         from: bcs.Address,
         to: bcs.Address
-    } });
-export const CertHashUpdated = new MoveStruct({ name: `${$moduleName}::CertHashUpdated`, fields: {
+    }
+});
+export const CertHashUpdated = new MoveStruct({
+    name: `${$moduleName}::CertHashUpdated`, fields: {
         cert_id: bcs.Address,
         new_hash: bcs.string(),
         actor: bcs.Address
-    } });
+    }
+});
 export interface CreateCertificateArguments {
     name: RawTransactionArgument<string>;
     category: RawTransactionArgument<string>;

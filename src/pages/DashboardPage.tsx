@@ -7,7 +7,7 @@ import { EmptyState } from "../components/shared/EmptyState";
 import { BatchCard } from "../components/shared/BatchCard";
 import { cn } from "../lib/utils";
 import { useCurrentAccount } from "@mysten/dapp-kit-react";
-import { useOwnedBatches } from "../hooks/useOwnedBatches";
+import { useOwnedCertificates } from "../hooks/useOwnedCertificates";
 
 type Role = "Artisan" | "Owner" | "Verifier" | "Buyer";
 
@@ -16,7 +16,7 @@ const ROLES: Role[] = ["Artisan", "Owner", "Verifier", "Buyer"];
 export default function DashboardPage() {
   const navigate = useNavigate();
   const account = useCurrentAccount();
-  const { batches, isLoading, error } = useOwnedBatches(account?.address);
+  const { certificates, isLoading, error } = useOwnedCertificates(account?.address);
 
   // Default to "Artisan" when a wallet is connected.
   const [activeRole, setActiveRole] = useState<Role>("Artisan");
@@ -99,7 +99,7 @@ export default function DashboardPage() {
               title="Error Loading Certificates"
               description={`Something went wrong while fetching from the SUI network: ${error}`}
             />
-          ) : batches.length === 0 ? (
+          ) : certificates.length === 0 ? (
             <EmptyState
               icon={<Gem className="h-6 w-6" />}
               title="No certificates found"
@@ -108,8 +108,8 @@ export default function DashboardPage() {
             />
           ) : (
             <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-              {batches.map((item: any, index: number) => (
-                <BatchCard key={index} item={item} />
+              {certificates.map((item: any) => (
+                <BatchCard key={item.id} item={item} />
               ))}
             </div>
           )}

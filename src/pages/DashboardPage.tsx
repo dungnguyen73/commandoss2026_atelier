@@ -1,58 +1,42 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { PlusCircle, Package } from "lucide-react";
+import { PlusCircle, Package, Loader2, Wallet } from "lucide-react";
 import { PageContainer } from "../components/layout/PageContainer";
 import { Button } from "../components/ui/button";
 import { EmptyState } from "../components/shared/EmptyState";
 import { BatchCard } from "../components/shared/BatchCard";
-import type { BatchItem } from "../components/shared/BatchCard";
 import { cn } from "../lib/utils";
+import { useCurrentAccount } from "@mysten/dapp-kit-react";
+import { useOwnedBatches } from "../hooks/useOwnedBatches";
 
 type Role = "Producer" | "Logistics" | "School" | "Consumer";
 
 const ROLES: Role[] = ["Producer", "Logistics", "School", "Consumer"];
 
-// Placeholder items — will be replaced with on-chain data in Phase 2
-const PLACEHOLDER_ITEMS: BatchItem[] = [
-  {
-    id: "0x4f2a8c",
-    name: "Jasmine Rice Batch #001",
-    category: "Grains",
-    origin: "Chiang Mai, Thailand",
-    status: "Verified",
-    createdAt: "Apr 2, 2026",
-  },
-  {
-    id: "0x9e3b1d",
-    name: "Organic Spinach Lot A",
-    category: "Vegetables",
-    origin: "Nakhon Pathom, Thailand",
-    status: "In Transit",
-    createdAt: "Apr 8, 2026",
-  },
-  {
-    id: "0x2c7f55",
-    name: "Brown Rice Batch #003",
-    category: "Grains",
-    origin: "Suphan Buri, Thailand",
-    status: "Created",
-    createdAt: "Apr 12, 2026",
-  },
-];
-
 export default function DashboardPage() {
   const navigate = useNavigate();
+  const account = useCurrentAccount();
+  const { batches, isLoading, error } = useOwnedBatches(account?.address);
+  console.log(batches);
+  // Preselect "Producer" if wallet is connected, but allow user to change it.
   const [activeRole, setActiveRole] = useState<Role>("Producer");
+
+  // If the user connects, default them to Producer if they aren't already looking at it.
+  useEffect(() => {
+    if (account && activeRole !== "Producer") {
+      setActiveRole("Producer");
+    }
+  }, [account]);
 
   return (
     <PageContainer>
       {/* ── Page header ── */}
       <div className="mb-8 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <h1 className="font-display text-2xl font-bold text-(--color-foreground)">
+          <h1 className="font-display text-2xl font-bold text-[var(--color-foreground)]">
             Dashboard
           </h1>
-          <p className="mt-1 text-sm text-muted-foreground">
+          <p className="mt-1 text-sm text-[var(--color-muted-foreground)]">
             Track and manage your registered batches.
           </p>
         </div>
@@ -69,7 +53,7 @@ export default function DashboardPage() {
 
       {/* ── Role tabs ── */}
       <div
-        className="mb-8 inline-flex rounded-xl bg-(--color-surface-low) p-1"
+        className="mb-8 inline-flex rounded-xl bg-[var(--color-surface-low)] p-1 overflow-x-auto w-full sm:w-auto"
         role="tablist"
         aria-label="Dashboard role"
       >
@@ -81,7 +65,7 @@ export default function DashboardPage() {
             aria-selected={activeRole === role}
             onClick={() => setActiveRole(role)}
             className={cn(
-              "rounded-lg px-4 py-2 text-sm font-medium transition-all duration-150",
+              "rounded-lg px-4 py-2 text-sm font-medium transition-all duration-150 whitespace-nowrap",
               activeRole === role
                 ? "bg-(--color-card) text-(--color-primary) shadow-(--shadow-sm)"
                 : "text-muted-foreground hover:text-(--color-foreground)",
@@ -94,13 +78,42 @@ export default function DashboardPage() {
 
       {/* ── Content by role ── */}
       {activeRole === "Producer" && (
-        <div className="space-y-3">
-          <p className="mb-4 text-xs font-semibold uppercase tracking-widest text-muted-foreground">
-            Your Registered Batches
+        <div className="space-y-4">
+          <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">
+            Your Owned Batches
           </p>
-          {PLACEHOLDER_ITEMS.map((item) => (
-            <BatchCard key={item.id} item={item} />
-          ))}
+
+          {!account ? (
+            <EmptyState
+              icon={<Wallet className="h-6 w-6" />}
+              title="Wallet Not Connected"
+              description="Please connect your SUI wallet to view your owned items."
+            />
+          ) : isLoading ? (
+            <div className="flex flex-col items-center justify-center py-12 text-muted-foreground">
+              <Loader2 className="h-8 w-8 animate-spin" />
+              <p className="mt-4 font-medium">Fetching your batches...</p>
+            </div>
+          ) : error ? (
+            <EmptyState
+              icon={<Package className="h-6 w-6 text-red-500" />}
+              title="Error Loading Batches"
+              description="Something went wrong while fetching from the SUI network."
+            />
+          ) : batches.length === 0 ? (
+            <EmptyState
+              icon={<Package className="h-6 w-6" />}
+              title="No batches found"
+              description="You don't own any batches yet. Create one to get started."
+              action={{ label: "Create Batch", onClick: () => navigate("/create") }}
+            />
+          ) : (
+            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+              {batches.map((item: any) => (
+                <BatchCard key={item.id} item={item} />
+              ))}
+            </div>
+          )}
         </div>
       )}
 
@@ -108,7 +121,7 @@ export default function DashboardPage() {
         <EmptyState
           icon={<Package className="h-6 w-6" />}
           title="No batches assigned yet"
-          description="Once a producer assigns a batch to you, it will appear here for custody updates."
+          description="Once a producer transfers a batch to you, it will appear here for custody updates."
         />
       )}
 

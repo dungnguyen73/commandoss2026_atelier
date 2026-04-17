@@ -1,7 +1,7 @@
 import { describe, it, expect, vi } from "vitest";
-import { renderHook, waitFor } from "@testing-library/react";
+import { renderHook } from "@testing-library/react";
 import { useBatchData } from "../useBatchData";
-import { useCurrentClient } from "@mysten/dapp-kit-react";
+
 import { useQuery } from "@tanstack/react-query";
 
 // Mock the hooks

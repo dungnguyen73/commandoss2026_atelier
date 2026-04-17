@@ -98,7 +98,7 @@ export default function DashboardPage() {
             <EmptyState
               icon={<Package className="h-6 w-6 text-red-500" />}
               title="Error Loading Batches"
-              description="Something went wrong while fetching from the SUI network."
+              description={`Something went wrong while fetching from the SUI network: ${error}`}
             />
           ) : batches.length === 0 ? (
             <EmptyState
@@ -109,8 +109,8 @@ export default function DashboardPage() {
             />
           ) : (
             <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-              {batches.map((item: any) => (
-                <BatchCard key={item.id} item={item} />
+              {batches.map((item: any, index: number) => (
+                <BatchCard key={index} item={item} />
               ))}
             </div>
           )}

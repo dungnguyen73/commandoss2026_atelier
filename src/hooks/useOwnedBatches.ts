@@ -1,8 +1,14 @@
-import { useCurrentClient } from "@mysten/dapp-kit-react";
 import { useQuery } from "@tanstack/react-query";
 
-// Standard TypeScript interfaces (no generated imports needed)
-interface OriginItem {
+interface OriginHistory {
+  event_type: string;
+  timestamp: string;
+  location: string;
+  note: string;
+  actor: string;
+}
+
+export interface OriginItem {
   id: string;
   name: string;
   category: string;
@@ -10,94 +16,135 @@ interface OriginItem {
   farm: string;
   province: string;
   certification: string;
-  history: Array<{
-    event_type: string;
-    timestamp: string;
-    location: string;
-    note: string;
-    actor: string;
-  }>;
+  history: OriginHistory[];
   creator: string;
   created_at: string;
 }
 
-interface GrpcOwnedObjectsResponse {
-  objects: any[];
-  hasNextPage: boolean;
+interface RpcObject {
+  data?: {
+    objectId?: string;
+    content?: {
+      fields?: Record<string, any>;
+    };
+  };
+}
+
+
+interface SuiRpcResponse<T> {
+  jsonrpc: "2.0";
+  id: number;
+  result: T;
+  error?: {
+    code: number;
+    message: string;
+  };
+}
+
+interface OwnedObjectEntry {
+  data?: {
+    objectId: string;
+    version: string;
+    digest: string;
+    type?: string;
+    content?: {
+      dataType: "moveObject";
+      type: string;
+      hasPublicTransfer: boolean;
+      fields: Record<string, any>;
+    };
+  };
+}
+
+interface GetOwnedObjectsResult {
+  data: OwnedObjectEntry[];
   nextCursor: string | null;
+  hasNextPage: boolean;
 }
 
-interface UseOwnedBatchesReturn {
-  batches: Array<OriginItem & { status: string }>;
-  isLoading: boolean;
-  error: unknown | null;
-  refetch: () => void;
-}
+async function fetchOwnedOriginItems(address: string): Promise<RpcObject[]> {
+  let allObjects: RpcObject[] = [];
+  let hasNextPage = true;
+  let cursor: string | null = null;
 
-export function useOwnedBatches(address?: string): UseOwnedBatchesReturn {
-  const client = useCurrentClient();
-
-  const queryResult = useQuery({
-    queryKey: ["getOriginItems", address],
-    queryFn: async (): Promise<any[]> => {
-      if (!address) return [];
-
-      const allObjects: any[] = [];
-      let cursor: string | undefined = undefined;
-      let hasNextPage = true;
-
-      while (hasNextPage) {
-        const response: GrpcOwnedObjectsResponse = await (client as any).listOwnedObjects({
-          owner: address,
-          cursor,
-          options: {
-            showType: true,
-            showContent: true,
-            showDisplay: true,
+  while (hasNextPage) {
+    const response: Response = await fetch("https://fullnode.testnet.sui.io:443", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        jsonrpc: "2.0",
+        id: 1,
+        method: "suix_getOwnedObjects",
+        params: [
+          address,
+          {
+            filter: {
+              StructType:
+                "0x147d9fa6a152df85ec449aadad46ac51d240013f94907ef979cdaf71f9115323::chain_passport::OriginItem",
+            },
+            options: {
+              showType: true,
+              showContent: true,
+            },
           },
-          // filter: {
-          //   MatchAny: [{ StructType: "chain_passport::OriginItem" }]
-          // }
-        });
+          cursor,
+          50,
+        ],
+      }),
+    });
 
-        if (response.objects?.length) {
-          allObjects.push(...response.objects);
-        }
-        hasNextPage = response.hasNextPage;
-        cursor = response.nextCursor ?? undefined;
-      }
 
-      console.log("DEBUG gRPC OriginItems:", allObjects.length);
-      return allObjects;
+    const body: SuiRpcResponse<GetOwnedObjectsResult> = await response.json();
+
+    if (body?.error) {
+      throw new Error(body.error.message || "RPC Error");
+    }
+
+    const { data, nextCursor, hasNextPage: hasNext } = body.result;
+
+    allObjects.push(...data);
+    cursor = nextCursor;
+    hasNextPage = hasNext;
+  }
+
+  return allObjects;
+}
+
+function mapToOriginItem(obj: RpcObject): OriginItem & { status: string } {
+  const content = obj.data?.content?.fields ?? {};
+
+  return {
+    id: obj.data?.objectId ?? "",
+    name: content.name ?? "Unknown",
+    category: content.category ?? "Unknown",
+    quantity: content.quantity ?? "0",
+    farm: content.farm ?? "Unknown",
+    province: content.province ?? "Unknown",
+    certification: content.certification ?? "None",
+    history: content.history ?? [],
+    creator: content.creator ?? "",
+    created_at: content.created_at ?? "0",
+    status: "Verified",
+  };
+}
+
+export function useOwnedBatches(address?: string) {
+  const query = useQuery({
+    queryKey: ["origin-items", address],
+    queryFn: async () => {
+      if (!address) return [];
+      return fetchOwnedOriginItems(address);
     },
     enabled: !!address,
     staleTime: 60_000,
   });
 
-  console.log("DEBUG queryResult:", queryResult);
-
-  const batches: Array<OriginItem & { status: string }> = queryResult.data?.map((obj: any) => {
-    const content = obj.data?.content?.fields || obj.data?.json || {};
-
-    return {
-      id: obj.data?.objectId || '',
-      name: content.name || obj.data?.display?.data?.name || 'Unknown',
-      category: content.category || 'Unknown',
-      quantity: content.quantity || '0',
-      farm: content.farm || 'Unknown',
-      province: content.province || 'Unknown',
-      certification: content.certification || 'None',
-      history: content.history || [],
-      creator: content.creator || '',
-      created_at: content.created_at || '0',
-      status: 'Verified' as const,
-    };
-  }) || [];
-
   return {
-    batches,
-    isLoading: queryResult.isLoading,
-    error: queryResult.error,
-    refetch: queryResult.refetch,
+    batches: (query.data ?? []).map(mapToOriginItem),
+    isLoading: query.isLoading,
+    error: query.error,
+    refetch: query.refetch,
   };
 }

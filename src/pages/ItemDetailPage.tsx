@@ -20,7 +20,7 @@ import { PageContainer } from "../components/layout/PageContainer";
 import { Button } from "../components/ui/button";
 import { StatusBadge } from "../components/shared/StatusBadge";
 import { useBatchData } from "../hooks/useBatchData";
-import QRCode from "react-qr-code";
+import { QRCode } from "react-qr-code";
 import { useState, useMemo } from "react";
 import { useCurrentAccount, useDAppKit, CurrentAccountSigner } from "@mysten/dapp-kit-react";
 import { Transaction } from "@mysten/sui/transactions";
@@ -71,6 +71,11 @@ export default function ItemDetailPage() {
   }, [dAppKit]);
 
   const { batch, ownerAddress, isLoading, error, refetch } = useBatchData(id);
+
+  console.log("batch: ", batch);
+  console.log("ownerAddress: ", ownerAddress);
+  console.log("isLoading: ", isLoading);
+
 
   // Modal / Form states
   const [activeAction, setActiveAction] = useState<"none" | "event" | "transfer">("none");
@@ -169,8 +174,8 @@ export default function ItemDetailPage() {
           <div className="mb-4 rounded-full bg-red-50 p-4 text-red-500">
             <AlertCircle className="h-10 w-10" />
           </div>
-          <h1 className="text-xl font-bold text-[var(--color-foreground)]">Batch Not Found</h1>
-          <p className="mt-2 text-[var(--color-muted-foreground)]">
+          <h1 className="text-xl font-bold text-(--color-foreground)">Batch Not Found</h1>
+          <p className="mt-2 text-muted-foreground">
             The batch ID you provided could not be found on the blockchain.
           </p>
           <Button variant="secondary" onClick={() => navigate("/scan")} className="mt-6">

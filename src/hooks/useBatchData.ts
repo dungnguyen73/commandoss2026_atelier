@@ -1,110 +1,132 @@
-import { useCurrentClient } from "@mysten/dapp-kit-react";
+import { useCurrentAccount } from "@mysten/dapp-kit-react";
 import { useQuery } from "@tanstack/react-query";
 
-interface OriginItem {
-  id: string;
+/* ================= TYPES ================= */
+
+interface OriginHistory {
+  event_type: string;
+  timestamp: string;
+  location: string;
+  note: string;
+  actor: string;
+}
+
+export interface OriginItemFields {
   name: string;
   category: string;
   quantity: string;
   farm: string;
   province: string;
   certification: string;
-  history: Array<{
-    event_type: string;
-    timestamp: string;
-    location: string;
-    note: string;
-    actor: string;
-  }>;
+  history: OriginHistory[];
   creator: string;
   created_at: string;
 }
 
+interface SuiRpcResponse<T> {
+  jsonrpc: "2.0";
+  id: number;
+  result: T;
+  error?: {
+    code: number;
+    message: string;
+  };
+}
+
+interface GetObjectResult {
+  data?: {
+    objectId: string;
+    owner?: {
+      AddressOwner?: string;
+      ObjectOwner?: string;
+      Shared?: any;
+    };
+    content?: {
+      dataType: "moveObject";
+      fields: Record<string, any>;
+    };
+  };
+}
+
 interface UseBatchDataReturn {
-  batch: OriginItem | null;
-  ownerAddress: string | null;
+  batch: OriginItemFields | null;
   isLoading: boolean;
-  error: unknown | null;
+  error: unknown;
+  ownerAddress?: string;
   refetch: () => void;
 }
 
-export function useBatchData(objectId?: string): UseBatchDataReturn {
-  const client = useCurrentClient();
+/* ================= FETCH ================= */
 
-  const queryResult = useQuery({
-    queryKey: ["getObject", objectId],
-    queryFn: async () => {
-      if (!objectId) throw new Error("objectId required");
-
-      try {
-        // gRPC Ledger service (primary - new SDK)
-        return await (client as any).ledger?.getObject({
-          objectId,
-        });
-      } catch {
-        // Fallback: JSON-RPC getObject
-        return await fetch('https://fullnode.testnet.sui.io:443', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            jsonrpc: '2.0',
-            id: 1,
-            method: 'sui_getObject',
-            params: [
-              objectId,
-              { showContent: true, showDisplay: true, showOwner: true }
-            ]
-          })
-        }).then(r => r.json());
-      }
+async function fetchObject(objectId: string): Promise<GetObjectResult> {
+  const response: Response = await fetch("https://fullnode.testnet.sui.io:443", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
     },
-    enabled: !!objectId,
-    staleTime: 30_000,
+    body: JSON.stringify({
+      jsonrpc: "2.0",
+      id: 1,
+      method: "sui_getObject",
+      params: [
+        objectId,
+        {
+          showContent: true,
+          showType: true,
+          showOwner: true, // 👈 needed for ownerAddress
+        },
+      ],
+    }),
   });
 
-  let parsedData: OriginItem | null = null;
-  let ownerAddress: string | null = null;
+  const body: SuiRpcResponse<GetObjectResult> = await response.json();
 
-  if (queryResult.data) {
-    try {
-      // Unified parsing for gRPC/JSON-RPC
-      const response = queryResult.data;
-      const object = 'object' in response ? response.object?.data : response.result?.data;
+  if (body?.error) {
+    throw new Error(body.error.message || "RPC Error");
+  }
 
-      if (!object) return { batch: null, ownerAddress: null, ...queryResult };
+  return body.result;
+}
 
-      const content = object.content?.fields || object.json || object.content;
+/* ================= HOOK ================= */
 
-      parsedData = {
-        id: object.objectId || '',
-        name: object.display?.data?.name || content?.name || 'Unknown',
-        category: content?.category || 'Unknown',
-        quantity: content?.quantity || '0',
-        farm: content?.farm || 'Unknown',
-        province: content?.province || 'Unknown',
-        certification: content?.certification || 'None',
-        history: content?.history || [],
-        creator: content?.creator || '',
-        created_at: content?.created_at || '0',
-      };
+export function useBatchData(objectId?: string): UseBatchDataReturn {
+  const account = useCurrentAccount();
 
-      // Owner extraction (gRPC/JSON-RPC compatible)
-      const owner = object.owner;
-      if (typeof owner === 'string') {
-        ownerAddress = owner;
-      } else if (owner?.AddressOwner) {
-        ownerAddress = owner.AddressOwner;
-      }
-    } catch (e) {
-      console.error("Failed to parse batch data:", e);
-    }
+  const query = useQuery({
+    queryKey: ["getObject", objectId],
+    queryFn: async () => {
+      if (!objectId) return null;
+      return fetchObject(objectId);
+    },
+    enabled: !!objectId,
+    staleTime: 60_000,
+  });
+  console.log("query: ", query);
+  /* ===== Parse data ===== */
+
+  let parsedData: OriginItemFields | null = null;
+  let ownerAddress: string | undefined;
+
+  const obj = query.data;
+
+  if (obj?.data?.content?.dataType === "moveObject") {
+    parsedData = obj.data.content.fields as OriginItemFields;
+  }
+
+  // Extract owner
+  if (obj?.data?.owner) {
+    ownerAddress =
+      obj.data.owner.AddressOwner ||
+      obj.data.owner.ObjectOwner ||
+      undefined;
   }
 
   return {
     batch: parsedData,
+    isLoading: query.isLoading,
+    error: query.error,
     ownerAddress,
-    isLoading: queryResult.isLoading,
-    error: queryResult.error,
-    refetch: queryResult.refetch,
+    refetch: query.refetch,
   };
 }

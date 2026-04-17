@@ -20,8 +20,9 @@ import { PageContainer } from "../components/layout/PageContainer";
 import { Button } from "../components/ui/button";
 import { StatusBadge } from "../components/shared/StatusBadge";
 import { useCertificateData } from "../hooks/useCertificateData";
-import * as QRCodeModule from "react-qr-code";
-const QRCode = (QRCodeModule as any).default || QRCodeModule;
+// Do not replace this import
+import { QRCode } from "react-qr-code";
+
 import { useState, useMemo } from "react";
 import { useCurrentAccount, useDAppKit, CurrentAccountSigner } from "@mysten/dapp-kit-react";
 import { Transaction } from "@mysten/sui/transactions";
@@ -206,7 +207,7 @@ export default function ItemDetailPage() {
         <div className="space-y-6 lg:col-span-2">
 
           {/* Certificate header card */}
-          <div className="rounded-2xl bg-[var(--color-card)] p-6 shadow-[var(--shadow-card)] sm:p-8">
+          <div className="rounded-2xl bg-(--color-card) p-6 shadow-[var(--shadow-card)] sm:p-8">
             <div className="flex items-start justify-between gap-4">
               <div className="space-y-2">
                 <p className="text-xs font-semibold uppercase tracking-widest text-[var(--color-muted-foreground)]">
@@ -385,8 +386,8 @@ export default function ItemDetailPage() {
                     <div className="flex flex-col items-center">
                       <span
                         className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-full ${isFirst
-                            ? "bg-[var(--color-primary)] text-white"
-                            : "bg-[var(--color-surface-low)] text-[var(--color-muted-foreground)]"
+                          ? "bg-[var(--color-primary)] text-white"
+                          : "bg-[var(--color-surface-low)] text-[var(--color-muted-foreground)]"
                           }`}
                       >
                         <Icon className="h-4 w-4" />
@@ -423,8 +424,8 @@ export default function ItemDetailPage() {
           {/* Trust / Tampered badge */}
           <div
             className={`rounded-2xl p-6 ring-1 ${isTampered
-                ? "bg-red-50 ring-red-200"
-                : "bg-emerald-50 ring-emerald-200"
+              ? "bg-red-50 ring-red-200"
+              : "bg-emerald-50 ring-emerald-200"
               }`}
           >
             <div className="flex items-center gap-3">

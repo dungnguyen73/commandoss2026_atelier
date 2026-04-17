@@ -1,16 +1,17 @@
 import { Badge } from "../ui/badge";
 import type { BadgeVariant } from "../ui/badge";
 
-export type BatchStatus = "Verified" | "In Transit" | "Created" | "Pending" | "Flagged";
+export type CertStatus = "Created" | "Certified" | "Transferred" | "Verified" | "Tampered" | "Closed";
 
-const statusMap: Record<BatchStatus, BadgeVariant> = {
-  Verified: "verified",
-  "In Transit": "in-transit",
-  Created: "created",
-  Pending: "pending",
-  Flagged: "flagged",
+const statusMap: Record<CertStatus, BadgeVariant> = {
+  Created:     "created",
+  Certified:   "certified",
+  Transferred: "transferred",
+  Verified:    "verified",
+  Tampered:    "tampered",
+  Closed:      "closed",
 };
 
-export function StatusBadge({ status }: { status: BatchStatus }) {
+export function StatusBadge({ status }: { status: CertStatus }) {
   return <Badge variant={statusMap[status]}>{status}</Badge>;
 }

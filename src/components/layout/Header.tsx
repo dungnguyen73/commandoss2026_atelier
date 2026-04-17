@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { NavLink } from "react-router-dom";
 import { ConnectButton } from "@mysten/dapp-kit-react/ui";
-import { Menu, X, Leaf } from "lucide-react";
+import { Menu, X, Gem } from "lucide-react";
 import { cn } from "../../lib/utils";
 
 const NAV_LINKS = [
@@ -58,13 +58,13 @@ export function Header() {
         <NavLink
           to="/"
           className="flex items-center gap-2 font-display font-bold text-[var(--color-foreground)] hover:opacity-80 transition-opacity"
-          aria-label="ChainPassport home"
+          aria-label="The Atelier home"
         >
           <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary-gradient">
-            <Leaf className="h-4 w-4 text-white" strokeWidth={2.5} />
+            <Gem className="h-4 w-4 text-white" strokeWidth={2.5} />
           </span>
           <span className="text-base tracking-tight">
-            Chain<span className="text-gradient-primary">Passport</span>
+            The<span className="text-gradient-primary">Atelier</span>
           </span>
         </NavLink>
 

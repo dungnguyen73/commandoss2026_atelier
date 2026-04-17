@@ -1,61 +1,62 @@
 # project_spec.md
 
 ## Project Name
-**ChainPassport**
+**The Atelier**
 
-A SUI-based provenance and traceability web app for food origin tracking, with future support for luxury item authentication.
+A SUI-based authenticity and provenance web app for artisan products, where creators mint a digital certificate of authenticity, anchor its hash on-chain, and let anyone verify the product later by scanning a QR code or pasting a certificate hash.
 
 ---
 
 ## 1. Project Overview
 
 ### 1.1 Purpose
-ChainPassport lets producers register food batches on-chain, logistics users add custody updates, and consumers or school admins verify origin by scanning a QR code. The app is designed as a digital passport for physical items, making the history of an item easy to trust and easy to read.
+The Atelier lets artisans create verifiable product certificates on-chain, transfer ownership as the product moves through shops or buyers, and allow the public to confirm authenticity through a QR-based verification page.
 
 ### 1.2 Product Vision
-The app should feel like a provenance verification tool, not a crypto app. It should be simple enough for non-technical users, especially school admins and consumers, while still being useful for producers and logistics operators.
+The app should feel like a trust and authenticity tool, not a crypto app. It should be simple enough for buyers, collectors, gallery staff, or marketplace users to understand in seconds, while still being useful for artisans and product owners.
 
 ### 1.3 MVP Goal
-The MVP should support wallet connect, batch creation, on-chain provenance recording, event history updates, QR generation, QR scanning, item detail pages, and role-based dashboard views.
+The MVP should support wallet connect, certificate creation, on-chain hash anchoring, ownership transfer, public verification, QR generation, QR scanning, certificate detail pages, and role-based dashboard views.
 
 ---
 
 ## 2. Target Users
 
-### 2.1 Producer
-Creates a batch, enters origin information, and mints the on-chain record.
+### 2.1 Artisan / Creator
+Creates the original certificate, uploads product details and an image, and mints the authenticity record with a SUI wallet.
 
-### 2.2 Logistics / Distributor
-Adds transport or custody updates such as location, status, and temperature.
+### 2.2 Current Owner / Holder
+Holds the physical product after transfer, can transfer it to another party, and can view the authenticity record and history.
 
-### 2.3 School Admin / Buyer
-Verifies batch origin, reviews compliance, and checks whether a batch can be trusted.
+### 2.3 Buyer / Collector
+Scans a QR code or enters a hash to verify whether the product is genuine or tampered.
 
-### 2.4 Consumer
-Scans a QR code and reads the origin timeline in a mobile-friendly view.
+### 2.4 Marketplace / Gallery / Reseller
+Checks authenticity before listing, accepting, or reselling an item.
 
-### 2.5 Future: Luxury Item Verifier
-Uses the same system pattern to verify authenticity and ownership history for luxury goods.
+### 2.5 Verifier / Expert Reviewer
+A knowledgeable reviewer who inspects the certificate, compares it to the on-chain record, and confirms authenticity for trust-sensitive cases.
 
 ---
 
 ## 3. Core Product Experience
 
 ### 3.1 Primary User Journey
-1. Producer opens the app.
-2. Connects SUI wallet.
-3. Creates a food batch with origin metadata.
-4. System mints a SUI object and generates a QR code.
-5. Logistics users add updates over time.
-6. School admin or consumer scans QR.
-7. App shows the full batch history in a timeline view.
+1. Artisan opens the app.
+2. Connects a SUI wallet.
+3. Creates a digital certificate with product metadata and a photo.
+4. System hashes the certificate and stores the hash on-chain.
+5. QR code is generated and attached to the physical product.
+6. The product is transferred to a shop, gallery, reseller, or buyer.
+7. A buyer scans the QR code or enters the certificate hash.
+8. The app shows the original certificate, on-chain timestamp, transfer history, and authenticity status.
 
 ### 3.2 Secondary Journeys
-- Search a batch by ID.
-- View all created or owned batches.
-- Add a new custody event.
-- Review trust/compliance status.
-- Share batch history link.
+- Search a certificate by object ID or hash.
+- View all created or owned certificates.
+- Transfer ownership to another wallet.
+- Review verification status and certificate history.
+- Share a public verification link.
 
 ---
 
@@ -66,56 +67,59 @@ Uses the same system pattern to verify authenticity and ownership history for lu
 - Detect connected account.
 - Store selected role in local state.
 - Protect write actions based on wallet connection.
-- Use read-only access for public scan pages.
+- Use read-only access for public verification pages.
 
-### 4.2 Batch Creation
-- Create a new product batch.
+### 4.2 Certificate Creation
+- Create a new product certificate.
 - Enter:
   - product name,
   - category,
-  - quantity,
-  - origin farm,
-  - province/region,
+  - artisan name,
+  - location,
+  - materials,
   - optional image,
-  - optional certification note.
+  - optional note or story.
+- Hash the certificate payload.
 - Mint a corresponding on-chain object.
-- Generate QR code from the object ID.
+- Generate QR code from the certificate or object ID.
 
-### 4.3 Batch History
-- Store a sequence of events.
-- Show event history as a timeline.
+### 4.3 Certificate History
+- Store a sequence of events or ownership changes.
+- Show history as a timeline.
 - Include event type, timestamp, location, and notes.
 - Display status badges such as:
   - Created,
-  - In Transit,
-  - Delivered,
-  - Verified.
+  - Transferred,
+  - Verified,
+  - Tampered,
+  - Closed.
 
-### 4.4 Custody Updates
-- Add an event to an existing batch.
-- Update owner or custodian.
-- Add transport or temperature info.
-- Record who performed the action.
+### 4.4 Ownership Transfer
+- Transfer the certificate or object to another wallet.
+- Record the new holder on-chain.
+- Use this for shop, gallery, reseller, or buyer handoff.
+- Keep the current owner as the only actor allowed to transfer or update the record.
 
-### 4.5 Scan and View
-- Scan QR from camera on mobile.
-- Open item detail page.
-- Show metadata and event timeline.
-- Show verification status and batch ID.
+### 4.5 Scan and Verify
+- Scan QR from camera on mobile and desktop app.
+- Open public verification page.
+- Show certificate metadata and timeline.
+- Compare current certificate data against the on-chain hash.
+- Show verification status and certificate ID.
 
 ### 4.6 Dashboard
 - Role-based dashboard views.
-- Producer view: created items, create new batch.
-- Logistics view: update batches.
-- School view: verify batches, search, list, filter.
-- Consumer view: scan and view only.
+- Artisan view: created certificates, create new certificate.
+- Owner view: owned items, transfer certificate.
+- Verifier view: search, scan, inspect details.
+- Public view: read-only verification flow.
 
 ---
 
 ## 5. Move Smart Contract Scope
 
 ### 5.1 Contract Purpose
-The Move package should model each batch as an on-chain object and keep its event history attached to that object.
+The Move package should model each certificate as an on-chain object and keep its authenticity history attached to that object.
 
 ### 5.2 Main On-Chain Objects
 - `OriginItem`
@@ -136,8 +140,9 @@ The Move package should model each batch as an on-chain object and keep its even
 - object ID,
 - creator,
 - current owner,
-- batch metadata,
-- event history.
+- certificate metadata,
+- event history,
+- timestamp of issuance.
 
 ### 5.6 Security Assumption
 For MVP, only the current owner can add or transfer updates. More advanced role and permission systems can be added later.
@@ -152,7 +157,7 @@ For MVP, only the current owner can add or transfer updates. More advanced role 
 - TypeScript
 - Tailwind CSS
 - shadcn/ui
-- @mysten/dapp-kit
+- `@mysten/dapp-kit`
 - SUI testnet integration
 - QR code generation and scanning libraries
 - React Router
@@ -163,13 +168,14 @@ For MVP, only the current owner can add or transfer updates. More advanced role 
 - `/create`
 - `/scan`
 - `/item/:id`
+- `/verify/:hash` or equivalent public verification route
 
 ### 6.3 Core Components
 - Header
 - Footer
 - Wallet connect button
 - Role selector
-- Batch card
+- Certificate card
 - Timeline component
 - Event form
 - QR code card
@@ -177,12 +183,13 @@ For MVP, only the current owner can add or transfer updates. More advanced role 
 - Empty state component
 - Loading skeletons
 - Status badge
+- Verification status banner
 
 ### 6.4 UX Requirements
-- Mobile-first.
+- Web app for desktop and mobile.
 - Clean and trustworthy.
-- Fast to understand without crypto knowledge.
-- Strong emphasis on provenance and confidence.
+- Fast to understand without blockchain knowledge.
+- Strong emphasis on authenticity and confidence.
 - Simple visual language with green as the trust color.
 
 ---
@@ -201,15 +208,15 @@ For MVP, only the current owner can add or transfer updates. More advanced role 
 
 ### 7.2 Feel
 The app should feel like:
-- a product passport,
-- a verification tool,
-- a trustworthy supply chain record,
+- a product authenticity tool,
+- a certificate verification system,
+- a trustworthy craftsmanship record,
 - not a trading app or speculative crypto UI.
 
 ### 7.3 UI Principles
 - Make scan action obvious.
-- Make history easy to understand.
-- Make trust status visible.
+- Make authenticity status visible.
+- Make certificate history easy to understand.
 - Keep forms short.
 - Reduce blockchain jargon in visible UI.
 
@@ -220,51 +227,51 @@ The app should feel like:
 ### 8.1 Navigation
 - Home
 - Dashboard
-- Create Batch
+- Create Certificate
 - Scan QR
-- My Items
+- My Certificates
 
 ### 8.2 Dashboard Views
-#### Producer
-- Create new batch
-- View created batches
+#### Artisan
+- Create new certificate
+- View created certificates
 - See QR codes
 
-#### Logistics
-- View assigned batches
-- Add updates
-- Transfer custody
+#### Owner
+- View owned certificates
+- Transfer ownership
+- Check verification status
 
-#### School Admin
-- Search by batch ID
-- Review history
-- Verify origin
-- Export or share summary
+#### Verifier
+- Search by hash or certificate ID
+- Review certificate history
+- Verify authenticity
+- Share summary
 
-#### Consumer
+#### Consumer / Buyer
 - Scan QR
-- View batch story
-- Read origin information
+- View certificate story
+- Read authenticity information
 
 ---
 
 ## 9. User Stories
 
-### 9.1 Producer
-- As a producer, I want to register a batch so that I can prove where it came from.
-- As a producer, I want to generate a QR code so that others can verify the batch quickly.
+### 9.1 Artisan
+- As an artisan, I want to register my product so that I can prove it is authentic.
+- As an artisan, I want to generate a QR code so that buyers can verify it quickly.
 
-### 9.2 Logistics
-- As a logistics operator, I want to add transport updates so that the batch history stays complete.
-- As a logistics operator, I want to transfer custody so that ownership changes are recorded.
+### 9.2 Owner
+- As a current owner, I want to transfer ownership so that the product history stays accurate.
+- As a current owner, I want to view the certificate so that I can present proof to buyers.
 
-### 9.3 School Admin
-- As a school admin, I want to verify product origin so that I can trust the food source.
-- As a school admin, I want to search batches so that I can quickly inspect multiple items.
+### 9.3 Verifier
+- As a verifier, I want to check whether the product is genuine so that I can trust what I am buying.
+- As a verifier, I want to search certificates so that I can inspect them quickly.
 
-### 9.4 Consumer
-- As a consumer, I want to scan a QR code so that I can see the product history.
-- As a consumer, I want a simple timeline so that I can understand the journey instantly.
+### 9.4 Consumer / Buyer
+- As a buyer, I want to scan a QR code so that I can see the certificate history.
+- As a buyer, I want a simple authenticity result so that I can decide quickly.
 
 ---
 
@@ -272,28 +279,29 @@ The app should feel like:
 
 ### Must Have
 - wallet connection
-- batch creation
+- certificate creation
 - QR generation
 - QR scanning
 - timeline display
-- update event creation
+- ownership transfer
+- public verification page
 - role-based dashboard
 - SUI testnet integration
 
 ### Nice to Have
 - image upload
-- certificate attachment
-- analytics charts
+- artisan profile page
+- verification analytics
 - PDF export
 - offline-friendly view
 - multilingual UI
 
 ### Out of Scope for MVP
 - full enterprise permission system
-- IoT sensor integration
-- real-time map tracking
-- complex inventory management
-- luxury goods support in the first demo
+- live image forensics
+- complex marketplace flows
+- inventory management
+- food traceability-specific fields
 
 ---
 
@@ -301,19 +309,19 @@ The app should feel like:
 
 ### Functional
 - Users can connect a wallet.
-- Users can create a batch on testnet.
-- Users can scan a QR and view the item page.
-- Users can see a timeline of events.
-- Users can add an update to a batch.
+- Users can create a certificate on testnet.
+- Users can scan a QR and view the certificate page.
+- Users can see whether the certificate is verified or tampered.
+- Users can transfer ownership of a certificate.
 
 ### UX
 - A non-technical user can understand the app in under 30 seconds.
-- The scan-to-history flow feels fast and clean.
+- The scan-to-verification flow feels fast and clean.
 - The UI looks polished enough for a hackathon demo.
 
 ### Technical
 - Frontend and contract are working together.
-- Object IDs are queryable from the UI.
+- Object IDs or hashes are queryable from the UI.
 - Data display is consistent and readable.
 
 ---
@@ -328,17 +336,19 @@ The app should feel like:
 
 ### Phase 2
 - Move contract creation
-- batch minting
-- event history storage
+- certificate minting
+- history storage
 
 ### Phase 3
 - QR generation
 - scanner flow
 - item detail page
+- public verification page
 
 ### Phase 4
 - dashboard views
 - role separation
+- ownership transfer
 - visual polish
 
 ### Phase 5
@@ -354,7 +364,7 @@ The app should feel like:
 - keep components small and reusable
 - place shared UI in `src/components/ui`
 - keep page logic in route components
-- use TypeScript interfaces for item data
+- use TypeScript interfaces for certificate data
 
 ### Move
 - store source in a single module folder
@@ -370,4 +380,4 @@ The app should feel like:
 
 ## 14. Final Product Definition
 
-ChainPassport is a provenance verification web app that lets producers create verifiable batches, logistics teams update the batch journey, and schools or consumers scan QR codes to read a trusted origin timeline. The first version focuses on food safety and traceability, but the same architecture can later support luxury authenticity and other provenance-based domains.
+The Atelier is a provenance verification web app that lets artisans create verifiable product certificates, owners transfer the item through its lifecycle, and buyers or reviewers scan QR codes to read a trusted authenticity timeline. The first version focuses on artisan authenticity and tamper-proof verification, but the same architecture can later support collectibles, luxury goods, and other provenance-based domains.

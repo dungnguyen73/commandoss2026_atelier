@@ -2,10 +2,9 @@ import { useNavigate } from "react-router-dom";
 import {
   ShieldCheck,
   ScanQrCode,
-  PackagePlus,
+  Gem,
   ArrowRight,
-  Leaf,
-  Truck,
+  Award,
   CheckCircle2,
 } from "lucide-react";
 import { Button } from "../components/ui/button";
@@ -13,42 +12,42 @@ import { Button } from "../components/ui/button";
 const HOW_IT_WORKS = [
   {
     step: "01",
-    icon: PackagePlus,
-    title: "Register a Batch",
+    icon: Gem,
+    title: "Create a Certificate",
     description:
-      "Producers enter origin details and mint an on-chain object that becomes the item's permanent passport.",
+      "Artisans connect their SUI wallet and mint a digital certificate for each handmade piece — storing metadata and a unique hash permanently on-chain.",
   },
   {
     step: "02",
-    icon: Truck,
-    title: "Track the Journey",
+    icon: Award,
+    title: "Anchor to Chain",
     description:
-      "Logistics operators add custody updates at every stage — location, temperature, handoffs — all recorded on-chain.",
+      "The certificate hash is anchored to the SUI blockchain, creating an immutable provenance record that proves authenticity and tracks every ownership transfer.",
   },
   {
     step: "03",
     icon: CheckCircle2,
     title: "Verify with a Scan",
     description:
-      "Buyers or consumers scan a QR code and instantly see the full provenance timeline — no app or account required.",
+      "Anyone can scan the QR code on the physical piece to instantly view the full certificate, ownership history, and authenticity status — no account required.",
   },
 ];
 
 const FEATURES = [
   {
     icon: ShieldCheck,
-    title: "Tamper-Proof Records",
-    description: "Every update is stored on the SUI blockchain and cannot be altered or deleted.",
+    title: "Tamper-Proof Certificates",
+    description: "Every certificate is hashed and stored on the SUI blockchain — impossible to alter or forge after minting.",
   },
   {
     icon: ScanQrCode,
     title: "One-Scan Verification",
-    description: "A single QR scan opens the complete origin story — fast, mobile-first, no friction.",
+    description: "A single QR scan opens the complete provenance certificate — fast, mobile-first, no friction for buyers or galleries.",
   },
   {
-    icon: Leaf,
-    title: "Built for Food Safety",
-    description: "Designed specifically for food traceability, school procurement, and supply chain compliance.",
+    icon: Gem,
+    title: "Built for Artisans",
+    description: "Designed for ceramicists, jewelers, textile makers, and craftspeople who want to certify and protect their creative work.",
   },
 ];
 
@@ -59,7 +58,7 @@ export default function LandingPage() {
     <div className="overflow-hidden">
       {/* ── Hero ─────────────────────────────────────────────────── */}
       <section className="relative mx-auto flex max-w-5xl flex-col items-center px-4 pb-20 pt-20 text-center sm:px-6 md:pt-28">
-        {/* Soft ambient blobs */}
+        {/* Soft ambient blob */}
         <div
           aria-hidden
           className="pointer-events-none absolute left-1/2 top-0 -translate-x-1/2 -translate-y-1/3 h-[480px] w-[480px] rounded-full bg-emerald-100 opacity-40 blur-3xl"
@@ -67,19 +66,19 @@ export default function LandingPage() {
 
         <div className="relative space-y-6">
           <span className="inline-flex items-center gap-1.5 rounded-full bg-emerald-50 px-3 py-1 text-xs font-semibold text-emerald-700 ring-1 ring-emerald-200">
-            <Leaf className="h-3 w-3" />
-            Food Provenance on SUI Blockchain
+            <Gem className="h-3 w-3" />
+            Artisan Authenticity on SUI Blockchain
           </span>
 
           <h1 className="font-display text-4xl font-extrabold leading-tight tracking-tight text-(--color-foreground) sm:text-5xl md:text-6xl">
-            Every batch tells{" "}
-            <span className="text-gradient-primary">a trusted story</span>
+            Every craft deserves{" "}
+            <span className="text-gradient-primary">a certified story</span>
           </h1>
 
           <p className="mx-auto max-w-xl text-base leading-relaxed text-muted-foreground sm:text-lg">
-            ChainPassport is a provenance platform for food origin. Producers
-            register batches on-chain, logistics teams record the journey, and
-            consumers verify authenticity with a single QR scan.
+            The Atelier lets artisans mint tamper-proof digital certificates for
+            handmade pieces, anchor them on-chain, and give every buyer or
+            collector instant, trustless proof of authenticity.
           </p>
 
           <div className="flex flex-col items-center gap-3 sm:flex-row sm:justify-center">
@@ -101,24 +100,24 @@ export default function LandingPage() {
               className="w-full sm:w-auto"
             >
               <ScanQrCode className="h-4 w-4" />
-              Scan a QR Code
+              Verify a Piece
             </Button>
           </div>
         </div>
 
-        {/* Hero card preview */}
+        {/* Hero certificate preview card */}
         <div className="relative mt-16 w-full max-w-md">
           <div className="rounded-2xl bg-(--color-card) p-6 shadow-(--shadow-card)">
             <div className="flex items-start justify-between">
               <div className="space-y-1">
                 <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">
-                  Origin Passport
+                  Artisan Certificate
                 </p>
                 <h2 className="font-display text-xl font-bold text-(--color-foreground)">
-                  Jasmine Rice — Batch 0x4f2a
+                  Celadon Teapot No.12
                 </h2>
                 <p className="text-sm text-muted-foreground">
-                  Chiang Mai, Thailand · Apr 2026
+                  Nguyen Thi Lan · Hanoi, Vietnam · Apr 2026
                 </p>
               </div>
               <span className="inline-flex items-center gap-1 rounded-full bg-emerald-50 px-2.5 py-0.5 text-xs font-semibold text-emerald-800 ring-1 ring-emerald-200">
@@ -127,12 +126,12 @@ export default function LandingPage() {
               </span>
             </div>
 
-            {/* Mini timeline */}
+            {/* Mini provenance timeline */}
             <div className="mt-5 space-y-3">
               {[
-                { label: "Harvested", loc: "Chiang Mai Farm", date: "Apr 2" },
-                { label: "Processed", loc: "Mae Rim Mill", date: "Apr 5" },
-                { label: "Delivered", loc: "Bangkok Depot", date: "Apr 9" },
+                { label: "Crafted",    loc: "Hanoi Workshop",  date: "Apr 2" },
+                { label: "Certified",  loc: "On-chain record", date: "Apr 4" },
+                { label: "Sold",       loc: "Gallery Maison",  date: "Apr 9" },
               ].map((event, i, arr) => (
                 <div key={i} className="flex gap-3">
                   <div className="flex flex-col items-center">
@@ -172,7 +171,7 @@ export default function LandingPage() {
               How it works
             </h2>
             <p className="mt-3 text-muted-foreground">
-              Three simple steps from farm to verified.
+              Three simple steps from workshop to verified.
             </p>
           </div>
 
@@ -214,7 +213,7 @@ export default function LandingPage() {
               Built for trust
             </h2>
             <p className="mt-3 text-muted-foreground">
-              Provenance infrastructure designed for the real world.
+              Provenance infrastructure designed for artisans and collectors.
             </p>
           </div>
 
@@ -245,10 +244,10 @@ export default function LandingPage() {
           <div className="bg-primary-gradient flex flex-col items-center justify-between gap-6 rounded-3xl px-8 py-12 text-center sm:flex-row sm:text-left">
             <div className="space-y-2">
               <h2 className="font-display text-2xl font-bold text-white">
-                Ready to passport your products?
+                Ready to certify your craft?
               </h2>
               <p className="text-sm text-white/80">
-                Connect your wallet and start registering batches on SUI testnet.
+                Connect your SUI wallet and mint your first certificate on-chain today.
               </p>
             </div>
             <Button
@@ -258,7 +257,7 @@ export default function LandingPage() {
               onClick={() => navigate("/create")}
               className="shrink-0 bg-white text-[var(--color-primary)] hover:bg-white/90 hover:text-[var(--color-primary)]"
             >
-              Create a Batch
+              Create a Certificate
               <ArrowRight className="h-4 w-4" />
             </Button>
           </div>

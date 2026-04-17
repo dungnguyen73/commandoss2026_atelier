@@ -77,11 +77,11 @@ export default function ScanPage() {
       {/* ── Page header ── */}
       <div className="mb-10 text-center">
         <h1 className="font-display text-2xl font-bold text-[var(--color-foreground)]">
-          Scan QR Code
+          Verify a Certificate
         </h1>
         <p className="mt-2 text-sm text-[var(--color-muted-foreground)]">
-          Point your camera at a ChainPassport QR code to view its provenance
-          record.
+          Point your camera at an Atelier QR code to view the full authenticity
+          certificate and provenance record.
         </p>
       </div>
 
@@ -138,7 +138,7 @@ export default function ScanPage() {
         id="scan-manual-form"
         onSubmit={handleManualSubmit}
         className="flex gap-2"
-        aria-label="Manual batch ID entry"
+        aria-label="Manual certificate ID entry"
       >
         <div className="relative flex-1">
           <Hash
@@ -146,12 +146,12 @@ export default function ScanPage() {
             aria-hidden
           />
           <input
-            id="manual-batch-id"
+            id="manual-cert-id"
             type="text"
             value={manualId}
             onChange={(e) => setManualId(e.target.value)}
-            placeholder="Batch ID or object address"
-            aria-label="Batch ID"
+            placeholder="Certificate ID or object address"
+            aria-label="Certificate ID"
             className="w-full rounded-xl bg-[var(--color-surface-low)] py-2.5 pl-9 pr-4 text-sm text-[var(--color-foreground)] placeholder:text-[var(--color-muted-foreground)] outline-none focus:bg-[var(--color-surface-lowest)] focus:ring-2 focus:ring-[var(--color-primary)]/30"
           />
         </div>

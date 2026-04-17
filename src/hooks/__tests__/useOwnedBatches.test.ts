@@ -30,7 +30,7 @@ describe("useOwnedBatches", () => {
       {
         data: {
           objectId: "0xabc",
-          type: "0x147d9::chain_passport::OriginItem",
+          type: "0x3fbeaad9f99986663cdd4147dfe85d0c9d268c450477f9104d3159fe2c34da77::atelier::ArtisanCertificate",
           content: {
             fields: {
               name: "Filtered Batch",
@@ -63,7 +63,7 @@ describe("useOwnedBatches", () => {
     expect(result.current.batches[0].id).toBe("0xabc");
     expect(result.current.batches[0].name).toBe("Filtered Batch");
     expect(result.current.batches[0].category).toBe("Vegetables");
-    expect(result.current.batches[0].origin).toBe("Da Lat");
+    expect(result.current.batches[0].location).toBe("Da Lat");
   });
 
   it("should return loading state correctly", () => {

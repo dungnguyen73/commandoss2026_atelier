@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { PlusCircle, Package, Loader2, Wallet } from "lucide-react";
+import { PlusCircle, Gem, Loader2, Wallet } from "lucide-react";
 import { PageContainer } from "../components/layout/PageContainer";
 import { Button } from "../components/ui/button";
 import { EmptyState } from "../components/shared/EmptyState";
@@ -9,22 +9,21 @@ import { cn } from "../lib/utils";
 import { useCurrentAccount } from "@mysten/dapp-kit-react";
 import { useOwnedBatches } from "../hooks/useOwnedBatches";
 
-type Role = "Producer" | "Logistics" | "School" | "Consumer";
+type Role = "Artisan" | "Owner" | "Verifier" | "Buyer";
 
-const ROLES: Role[] = ["Producer", "Logistics", "School", "Consumer"];
+const ROLES: Role[] = ["Artisan", "Owner", "Verifier", "Buyer"];
 
 export default function DashboardPage() {
   const navigate = useNavigate();
   const account = useCurrentAccount();
   const { batches, isLoading, error } = useOwnedBatches(account?.address);
-  console.log(batches);
-  // Preselect "Producer" if wallet is connected, but allow user to change it.
-  const [activeRole, setActiveRole] = useState<Role>("Producer");
 
-  // If the user connects, default them to Producer if they aren't already looking at it.
+  // Default to "Artisan" when a wallet is connected.
+  const [activeRole, setActiveRole] = useState<Role>("Artisan");
+
   useEffect(() => {
-    if (account && activeRole !== "Producer") {
-      setActiveRole("Producer");
+    if (account && activeRole !== "Artisan") {
+      setActiveRole("Artisan");
     }
   }, [account]);
 
@@ -37,7 +36,7 @@ export default function DashboardPage() {
             Dashboard
           </h1>
           <p className="mt-1 text-sm text-[var(--color-muted-foreground)]">
-            Track and manage your registered batches.
+            Track and manage your certified artisan pieces.
           </p>
         </div>
         <Button
@@ -47,7 +46,7 @@ export default function DashboardPage() {
           className="shrink-0"
         >
           <PlusCircle className="h-4 w-4" />
-          Create Batch
+          New Certificate
         </Button>
       </div>
 
@@ -76,36 +75,36 @@ export default function DashboardPage() {
         ))}
       </div>
 
-      {/* ── Content by role ── */}
-      {activeRole === "Producer" && (
+      {/* ── Artisan: owned certificates ── */}
+      {activeRole === "Artisan" && (
         <div className="space-y-4">
           <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">
-            Your Owned Batches
+            Your Certificates
           </p>
 
           {!account ? (
             <EmptyState
               icon={<Wallet className="h-6 w-6" />}
               title="Wallet Not Connected"
-              description="Please connect your SUI wallet to view your owned items."
+              description="Please connect your SUI wallet to view your certificates."
             />
           ) : isLoading ? (
             <div className="flex flex-col items-center justify-center py-12 text-muted-foreground">
               <Loader2 className="h-8 w-8 animate-spin" />
-              <p className="mt-4 font-medium">Fetching your batches...</p>
+              <p className="mt-4 font-medium">Fetching your certificates...</p>
             </div>
           ) : error ? (
             <EmptyState
-              icon={<Package className="h-6 w-6 text-red-500" />}
-              title="Error Loading Batches"
+              icon={<Gem className="h-6 w-6 text-red-500" />}
+              title="Error Loading Certificates"
               description={`Something went wrong while fetching from the SUI network: ${error}`}
             />
           ) : batches.length === 0 ? (
             <EmptyState
-              icon={<Package className="h-6 w-6" />}
-              title="No batches found"
-              description="You don't own any batches yet. Create one to get started."
-              action={{ label: "Create Batch", onClick: () => navigate("/create") }}
+              icon={<Gem className="h-6 w-6" />}
+              title="No certificates found"
+              description="You haven't minted any certificates yet. Create one to get started."
+              action={{ label: "New Certificate", onClick: () => navigate("/create") }}
             />
           ) : (
             <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
@@ -117,28 +116,31 @@ export default function DashboardPage() {
         </div>
       )}
 
-      {activeRole === "Logistics" && (
+      {/* ── Owner: transferred certificates ── */}
+      {activeRole === "Owner" && (
         <EmptyState
-          icon={<Package className="h-6 w-6" />}
-          title="No batches assigned yet"
-          description="Once a producer transfers a batch to you, it will appear here for custody updates."
+          icon={<Gem className="h-6 w-6" />}
+          title="No certificates transferred to you yet"
+          description="Once an artisan transfers a certificate to you, it will appear here for safekeeping and re-transfer."
         />
       )}
 
-      {activeRole === "School" && (
+      {/* ── Verifier: verification lookup ── */}
+      {activeRole === "Verifier" && (
         <EmptyState
-          icon={<Package className="h-6 w-6" />}
-          title="No batches to verify"
-          description="Search for a batch by ID, or scan a QR code to start a verification."
+          icon={<Gem className="h-6 w-6" />}
+          title="Nothing to verify yet"
+          description="Search for a certificate by ID, or scan a QR code to verify authenticity."
           action={{ label: "Scan QR", onClick: () => navigate("/scan") }}
         />
       )}
 
-      {activeRole === "Consumer" && (
+      {/* ── Buyer: browsing certificates ── */}
+      {activeRole === "Buyer" && (
         <EmptyState
-          icon={<Package className="h-6 w-6" />}
-          title="Scan to see origin"
-          description="Use the Scan page to read a product QR code and view its full provenance history."
+          icon={<Gem className="h-6 w-6" />}
+          title="Discover certified pieces"
+          description="Scan an item's QR code to view its full certificate, provenance history, and transfer record."
           action={{ label: "Scan QR", onClick: () => navigate("/scan") }}
         />
       )}

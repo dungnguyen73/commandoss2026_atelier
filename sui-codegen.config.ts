@@ -8,8 +8,8 @@ const config: SuiCodegenConfig = {
       path: "./move/counter",
     },
     {
-      package: "@local-pkg/chain-passport",
-      path: "./move/chain_passport",
+      package: "@local-pkg/atelier",
+      path: "./move/atelier",
     },
   ],
 };

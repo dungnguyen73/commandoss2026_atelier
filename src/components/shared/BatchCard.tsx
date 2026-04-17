@@ -1,29 +1,29 @@
 import { useNavigate } from "react-router-dom";
-import { ArrowRight, Package } from "lucide-react";
+import { ArrowRight, Gem } from "lucide-react";
 import { cn } from "../../lib/utils";
 import { StatusBadge } from "./StatusBadge";
-import type { BatchStatus } from "./StatusBadge";
+import type { CertStatus } from "./StatusBadge";
 
-export interface BatchItem {
+export interface CertItem {
   id: string;
   name: string;
   category: string;
-  origin: string;
-  status: BatchStatus;
+  location: string;
+  status: CertStatus;
   createdAt: string;
 }
 
-interface BatchCardProps {
-  item: BatchItem;
+interface CertCardProps {
+  item: CertItem;
   className?: string;
 }
 
-export function BatchCard({ item, className }: BatchCardProps) {
+export function BatchCard({ item, className }: CertCardProps) {
   const navigate = useNavigate();
 
   return (
     <button
-      id={`batch-card-${item.id}`}
+      id={`cert-card-${item.id}`}
       onClick={() => navigate(`/item/${item.id}`)}
       className={cn(
         "group w-full rounded-xl bg-[var(--color-card)] p-5 text-left",
@@ -35,14 +35,14 @@ export function BatchCard({ item, className }: BatchCardProps) {
       <div className="flex items-start justify-between gap-4">
         <div className="flex items-start gap-3">
           <div className="mt-0.5 flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-[var(--color-surface-low)]">
-            <Package className="h-5 w-5 text-[var(--color-primary)]" />
+            <Gem className="h-5 w-5 text-[var(--color-primary)]" />
           </div>
           <div className="space-y-1">
             <p className="font-semibold leading-snug text-[var(--color-foreground)]">
               {item.name}
             </p>
             <p className="text-sm text-[var(--color-muted-foreground)]">
-              {item.category} · {item.origin}
+              {item.category} · {item.location}
             </p>
             <p className="text-xs text-[var(--color-muted-foreground)]">
               {item.createdAt}

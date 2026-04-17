@@ -12,10 +12,10 @@ export interface OriginItem {
   id: string;
   name: string;
   category: string;
-  quantity: string;
-  farm: string;
-  province: string;
-  certification: string;
+  artisanName: string;
+  location: string;
+  materials: string;
+  note: string;
   history: OriginHistory[];
   creator: string;
   created_at: string;
@@ -82,7 +82,7 @@ async function fetchOwnedOriginItems(address: string): Promise<RpcObject[]> {
           {
             filter: {
               StructType:
-                "0x147d9fa6a152df85ec449aadad46ac51d240013f94907ef979cdaf71f9115323::chain_passport::OriginItem",
+                "0x3fbeaad9f99986663cdd4147dfe85d0c9d268c450477f9104d3159fe2c34da77::atelier::ArtisanCertificate",
             },
             options: {
               showType: true,
@@ -112,21 +112,22 @@ async function fetchOwnedOriginItems(address: string): Promise<RpcObject[]> {
   return allObjects;
 }
 
-function mapToOriginItem(obj: RpcObject): OriginItem & { status: string } {
+function mapToOriginItem(obj: RpcObject): OriginItem & { status: string; location: string } {
   const content = obj.data?.content?.fields ?? {};
 
   return {
     id: obj.data?.objectId ?? "",
     name: content.name ?? "Unknown",
     category: content.category ?? "Unknown",
-    quantity: content.quantity ?? "0",
-    farm: content.farm ?? "Unknown",
-    province: content.province ?? "Unknown",
-    certification: content.certification ?? "None",
+    // Support both old field names (chain_passport) and new (atelier)
+    artisanName: content.artisan_name ?? content.quantity ?? "Unknown",
+    location: content.location ?? content.province ?? "Unknown",
+    materials: content.materials ?? content.farm ?? "Unknown",
+    note: content.note ?? content.certification ?? "None",
     history: content.history ?? [],
     creator: content.creator ?? "",
     created_at: content.created_at ?? "0",
-    status: "Verified",
+    status: content.status ?? "Certified",
   };
 }
 

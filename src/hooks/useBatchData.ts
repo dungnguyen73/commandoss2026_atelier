@@ -1,4 +1,3 @@
-import { useCurrentAccount } from "@mysten/dapp-kit-react";
 import { useQuery } from "@tanstack/react-query";
 
 /* ================= TYPES ================= */
@@ -14,13 +13,20 @@ interface OriginHistory {
 export interface OriginItemFields {
   name: string;
   category: string;
-  quantity: string;
-  farm: string;
-  province: string;
-  certification: string;
+  // Artisan fields — populated by atelier contract
+  artisan_name?: string;
+  location?: string;
+  materials?: string;
+  note?: string;
+  // Legacy fields — populated by chain_passport contract (fallback)
+  quantity?: string;
+  farm?: string;
+  province?: string;
+  certification?: string;
   history: OriginHistory[];
   creator: string;
   created_at: string;
+  status?: string;
 }
 
 interface SuiRpcResponse<T> {
@@ -73,7 +79,7 @@ async function fetchObject(objectId: string): Promise<GetObjectResult> {
         {
           showContent: true,
           showType: true,
-          showOwner: true, // 👈 needed for ownerAddress
+          showOwner: true,
         },
       ],
     }),
@@ -91,8 +97,6 @@ async function fetchObject(objectId: string): Promise<GetObjectResult> {
 /* ================= HOOK ================= */
 
 export function useBatchData(objectId?: string): UseBatchDataReturn {
-  const account = useCurrentAccount();
-
   const query = useQuery({
     queryKey: ["getObject", objectId],
     queryFn: async () => {
@@ -102,7 +106,6 @@ export function useBatchData(objectId?: string): UseBatchDataReturn {
     enabled: !!objectId,
     staleTime: 60_000,
   });
-  console.log("query: ", query);
   /* ===== Parse data ===== */
 
   let parsedData: OriginItemFields | null = null;

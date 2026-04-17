@@ -3,7 +3,7 @@ import { Button } from "../components/ui/button";
 import { Wallet, Loader2, CheckCircle2 } from "lucide-react";
 import { useCurrentAccount, useDAppKit, CurrentAccountSigner } from "@mysten/dapp-kit-react";
 import { Transaction } from "@mysten/sui/transactions";
-import { createOriginItem } from "../contracts/chain_passport/chain_passport";
+import { createCertificate } from "../contracts/atelier/atelier";
 import { useState, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 
@@ -24,7 +24,7 @@ const FIELDS: FieldProps[] = [
     id: "product-name",
     name: "name",
     label: "Product Name",
-    placeholder: "e.g. Jasmine Rice",
+    placeholder: "e.g. Celadon Teapot No.12",
     required: true,
   },
   {
@@ -33,36 +33,36 @@ const FIELDS: FieldProps[] = [
     label: "Category",
     as: "select",
     required: true,
-    options: ["Grains", "Vegetables", "Fruits", "Dairy", "Meat", "Other"],
+    options: ["Ceramics", "Jewelry", "Textiles", "Leather", "Woodwork", "Glass", "Painting", "Other"],
   },
   {
-    id: "quantity",
-    name: "quantity",
-    label: "Quantity",
-    placeholder: "e.g. 500 kg",
+    id: "artisan-name",
+    name: "artisanName",
+    label: "Artisan Name",
+    placeholder: "e.g. Nguyen Thi Lan",
     required: true,
   },
   {
-    id: "origin-farm",
-    name: "farm",
-    label: "Origin Farm",
-    placeholder: "e.g. Chiang Mai Organic Farm",
+    id: "location",
+    name: "location",
+    label: "Location / Studio",
+    placeholder: "e.g. Hanoi, Vietnam",
     required: true,
   },
   {
-    id: "province",
-    name: "province",
-    label: "Province / Region",
-    placeholder: "e.g. Chiang Mai, Thailand",
+    id: "materials",
+    name: "materials",
+    label: "Materials",
+    placeholder: "e.g. Stoneware clay, Celadon glaze",
     required: true,
   },
   {
-    id: "certification",
-    name: "certification",
-    label: "Certification Note",
+    id: "note",
+    name: "note",
+    label: "Certificate Note / Story",
     as: "textarea",
-    placeholder: "Optional — e.g. GAP certified, organic, pesticide-free",
-    hint: "Include any relevant safety or quality certifications.",
+    placeholder: "Optional — describe the piece, technique, or provenance story…",
+    hint: "This note is stored on-chain as part of the certificate.",
   },
 ];
 
@@ -74,17 +74,17 @@ export default function CreatePage() {
   const dAppKit = useDAppKit();
   const signer = useMemo(() => new CurrentAccountSigner(dAppKit as any), [dAppKit]);
   const navigate = useNavigate();
-  
+
   const [isMinting, setIsMinting] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [formData, setFormData] = useState({
     name: "",
     category: "",
-    quantity: "",
-    farm: "",
-    province: "",
-    certification: "",
+    artisanName: "",
+    location: "",
+    materials: "",
+    note: "",
   });
 
   const handleInputChange = (
@@ -98,9 +98,9 @@ export default function CreatePage() {
     return (
       formData.name.trim() !== "" &&
       formData.category.trim() !== "" &&
-      formData.quantity.trim() !== "" &&
-      formData.farm.trim() !== "" &&
-      formData.province.trim() !== ""
+      formData.artisanName.trim() !== "" &&
+      formData.location.trim() !== "" &&
+      formData.materials.trim() !== ""
     );
   }, [formData]);
 
@@ -113,25 +113,24 @@ export default function CreatePage() {
 
     try {
       const tx = new Transaction();
-      createOriginItem({
+      createCertificate({
+        package: "0x3fbeaad9f99986663cdd4147dfe85d0c9d268c450477f9104d3159fe2c34da77",
         arguments: [
           formData.name,
           formData.category,
-          formData.quantity,
-          formData.farm,
-          formData.province,
-          formData.certification || "N/A",
+          formData.artisanName,
+          formData.location,
+          formData.materials,
+          formData.note || "N/A",
+          "0x0000000000000000000000000000000000000000000000000000000000000000" // Dummy hash
         ]
       })(tx);
 
       const result = await signer.signAndExecuteTransaction({ transaction: tx });
-      console.log("Minting successful:", result);
+      console.log("Certificate minted:", result);
       setIsSuccess(true);
       setIsMinting(false);
-      // Redirect after a short delay
-      setTimeout(() => {
-        navigate("/dashboard");
-      }, 2000);
+      setTimeout(() => navigate("/dashboard"), 2000);
     } catch (err: any) {
       console.error("Minting failed:", err);
       setError(err.message || "Transaction failed. Please try again.");
@@ -147,11 +146,11 @@ export default function CreatePage() {
             <CheckCircle2 className="h-12 w-12" />
           </div>
           <h1 className="font-display text-3xl font-bold text-[var(--color-foreground)]">
-            Batch Registered!
+            Certificate Created!
           </h1>
           <p className="mt-4 max-w-sm text-[var(--color-muted-foreground)]">
-            Your product batch has been successfully minted on the SUI blockchain. 
-            Redirecting to your dashboard...
+            Your artisan certificate has been successfully minted on the SUI blockchain.
+            Redirecting to your dashboard…
           </p>
         </div>
       </PageContainer>
@@ -163,25 +162,24 @@ export default function CreatePage() {
       {/* ── Page header ── */}
       <div className="mb-8">
         <h1 className="font-display text-2xl font-bold text-[var(--color-foreground)]">
-          Create a Batch
+          Create a Certificate
         </h1>
         <p className="mt-1 text-sm text-[var(--color-muted-foreground)]">
-          Register a new product batch on the SUI blockchain. All fields marked
-          with <span className="text-[var(--color-primary)]">*</span> are
-          required.
+          Register a new artisan piece on the SUI blockchain. Fields marked with{" "}
+          <span className="text-[var(--color-primary)]">*</span> are required.
         </p>
       </div>
 
       {/* ── Form card ── */}
       <form
-        id="create-batch-form"
+        id="create-certificate-form"
         onSubmit={handleSubmit}
         className="rounded-2xl bg-[var(--color-card)] p-6 shadow-[var(--shadow-card)] sm:p-8"
         noValidate
       >
         <fieldset className="space-y-5" disabled={isMinting || !account}>
           <legend className="mb-6 text-xs font-semibold uppercase tracking-widest text-[var(--color-muted-foreground)]">
-            Batch Information
+            Certificate Information
           </legend>
 
           {FIELDS.map((field) => (
@@ -192,10 +190,10 @@ export default function CreatePage() {
               </label>
 
               {field.as === "select" ? (
-                <select 
-                  id={field.id} 
-                  name={field.name} 
-                  className={inputBase} 
+                <select
+                  id={field.id}
+                  name={field.name}
+                  className={inputBase}
                   required={field.required}
                   value={formData[field.name as keyof typeof formData]}
                   onChange={handleInputChange}
@@ -251,15 +249,15 @@ export default function CreatePage() {
               <div className="flex items-start gap-3">
                 <Wallet className="mt-0.5 h-4 w-4 shrink-0 text-[var(--color-muted-foreground)]" />
                 <p className="text-sm text-[var(--color-muted-foreground)]">
-                  Connect your SUI wallet to mint this batch on-chain and generate a
-                  QR code.
+                  Connect your SUI wallet to mint this certificate on-chain and
+                  generate its QR code.
                 </p>
               </div>
             </div>
           )}
-          
+
           <Button
-            id="create-batch-submit"
+            id="create-certificate-submit"
             type="submit"
             variant="primary"
             disabled={isMinting || !account || !isFormValid}
@@ -268,10 +266,10 @@ export default function CreatePage() {
             {isMinting ? (
               <>
                 <Loader2 className="mr-2 h-5 w-5 animate-spin" />
-                Minting Batch...
+                Minting Certificate…
               </>
             ) : account ? (
-              "Mint Product Batch"
+              "Mint Certificate"
             ) : (
               "Connect Wallet to Continue"
             )}

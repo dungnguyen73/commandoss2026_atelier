@@ -8,6 +8,29 @@ import {
   CheckCircle2,
 } from "lucide-react";
 import { Button } from "../components/ui/button";
+import { motion } from "framer-motion";
+
+const containerVariants = {
+  hidden: { opacity: 0 },
+  visible: {
+    opacity: 1,
+    transition: {
+      staggerChildren: 0.2,
+    },
+  },
+};
+
+const itemVariants = {
+  hidden: { opacity: 0, y: 20 },
+  visible: {
+    opacity: 1,
+    y: 0,
+    transition: {
+      duration: 0.6,
+      ease: "easeOut",
+    },
+  },
+};
 
 const HOW_IT_WORKS = [
   {
@@ -57,14 +80,19 @@ export default function LandingPage() {
   return (
     <div className="overflow-hidden">
       {/* ── Hero ─────────────────────────────────────────────────── */}
-      <section className="relative mx-auto flex max-w-5xl flex-col items-center px-4 pb-20 pt-20 text-center sm:px-6 md:pt-28">
+      <motion.section 
+        variants={containerVariants}
+        initial="hidden"
+        animate="visible"
+        className="relative mx-auto flex max-w-5xl flex-col items-center px-4 pb-20 pt-20 text-center sm:px-6 md:pt-28"
+      >
         {/* Soft ambient blob */}
         <div
           aria-hidden
           className="pointer-events-none absolute left-1/2 top-0 -translate-x-1/2 -translate-y-1/3 h-[480px] w-[480px] rounded-full bg-emerald-100 opacity-40 blur-3xl"
         />
 
-        <div className="relative space-y-6">
+        <motion.div variants={itemVariants} className="relative space-y-6">
           <span className="inline-flex items-center gap-1.5 rounded-full bg-emerald-50 px-3 py-1 text-xs font-semibold text-emerald-700 ring-1 ring-emerald-200">
             <Gem className="h-3 w-3" />
             Artisan Authenticity on SUI Blockchain
@@ -102,14 +130,26 @@ export default function LandingPage() {
               <ScanQrCode className="h-4 w-4" />
               Verify a Piece
             </Button>
+            <Button
+              id="hero-cta-demo"
+              variant="ghost"
+              size="lg"
+              onClick={() => navigate("/item/0x7b568399589d81d4a89bc448eb586c99c43d842292f74154fa7847bc08bca08b")}
+              className="w-full sm:w-auto bg-white/50 backdrop-blur-sm border border-emerald-100 text-emerald-800"
+            >
+              View Demo
+            </Button>
           </div>
-        </div>
+        </motion.div>
 
         {/* Hero certificate preview card */}
-        <div className="relative mt-16 w-full max-w-md">
-          <div className="rounded-2xl bg-(--color-card) p-6 shadow-(--shadow-card)">
+        <motion.div 
+          variants={itemVariants}
+          className="relative mt-16 w-full max-w-md"
+        >
+          <div className="rounded-2xl bg-(--color-card) p-6 shadow-(--shadow-card) transition-all hover:scale-[1.02] duration-500">
             <div className="flex items-start justify-between">
-              <div className="space-y-1">
+              <div className="space-y-1 text-left">
                 <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">
                   Artisan Certificate
                 </p>
@@ -117,7 +157,7 @@ export default function LandingPage() {
                   Celadon Teapot No.12
                 </h2>
                 <p className="text-sm text-muted-foreground">
-                  Nguyen Thi Lan · Hanoi, Vietnam · Apr 2026
+                  Nguyen Thi Lan · Hanoi · Apr 2026
                 </p>
               </div>
               <span className="inline-flex items-center gap-1 rounded-full bg-emerald-50 px-2.5 py-0.5 text-xs font-semibold text-emerald-800 ring-1 ring-emerald-200">
@@ -127,7 +167,7 @@ export default function LandingPage() {
             </div>
 
             {/* Mini provenance timeline */}
-            <div className="mt-5 space-y-3">
+            <div className="mt-5 space-y-3 text-left">
               {[
                 { label: "Crafted",    loc: "Hanoi Workshop",  date: "Apr 2" },
                 { label: "Certified",  loc: "On-chain record", date: "Apr 4" },
@@ -154,8 +194,8 @@ export default function LandingPage() {
               ))}
             </div>
           </div>
-        </div>
-      </section>
+        </motion.div>
+      </motion.section>
 
       {/* ── How it works ─────────────────────────────────────────── */}
       <section
@@ -163,7 +203,12 @@ export default function LandingPage() {
         aria-labelledby="how-it-works-heading"
       >
         <div className="mx-auto max-w-5xl">
-          <div className="mb-12 text-center">
+          <motion.div 
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            className="mb-12 text-center"
+          >
             <h2
               id="how-it-works-heading"
               className="font-display text-3xl font-bold text-(--color-foreground)"
@@ -173,12 +218,16 @@ export default function LandingPage() {
             <p className="mt-3 text-muted-foreground">
               Three simple steps from workshop to verified.
             </p>
-          </div>
+          </motion.div>
 
           <div className="grid gap-6 sm:grid-cols-3">
-            {HOW_IT_WORKS.map(({ step, icon: Icon, title, description }) => (
-              <div
+            {HOW_IT_WORKS.map(({ step, icon: Icon, title, description }, i) => (
+              <motion.div
                 key={step}
+                initial={{ opacity: 0, y: 30 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                transition={{ delay: i * 0.1, duration: 0.5 }}
+                viewport={{ once: true }}
                 className="group rounded-2xl bg-(--color-card) p-8 shadow-[var(--shadow-card)] transition-shadow duration-200 hover:shadow-[0px_24px_48px_rgba(19,27,46,0.10)]"
               >
                 <span className="font-display text-4xl font-extrabold text-emerald-100">
@@ -193,7 +242,7 @@ export default function LandingPage() {
                 <p className="mt-2 text-sm leading-relaxed text-muted-foreground">
                   {description}
                 </p>
-              </div>
+              </motion.div>
             ))}
           </div>
         </div>
@@ -205,7 +254,12 @@ export default function LandingPage() {
         aria-labelledby="features-heading"
       >
         <div className="mx-auto max-w-5xl">
-          <div className="mb-12 text-center">
+          <motion.div 
+            initial={{ opacity: 0 }}
+            whileInView={{ opacity: 1 }}
+            viewport={{ once: true }}
+            className="mb-12 text-center"
+          >
             <h2
               id="features-heading"
               className="font-display text-3xl font-bold text-(--color-foreground)"
@@ -215,12 +269,16 @@ export default function LandingPage() {
             <p className="mt-3 text-muted-foreground">
               Provenance infrastructure designed for artisans and collectors.
             </p>
-          </div>
+          </motion.div>
 
           <div className="grid gap-5 sm:grid-cols-3">
-            {FEATURES.map(({ icon: Icon, title, description }) => (
-              <div
+            {FEATURES.map(({ icon: Icon, title, description }, i) => (
+              <motion.div
                 key={title}
+                initial={{ opacity: 0, scale: 0.95 }}
+                whileInView={{ opacity: 1, scale: 1 }}
+                transition={{ delay: i * 0.1 }}
+                viewport={{ once: true }}
                 className="flex flex-col gap-3 rounded-2xl bg-(--color-card) p-7 shadow-[var(--shadow-card)]"
               >
                 <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-emerald-50">
@@ -232,7 +290,7 @@ export default function LandingPage() {
                 <p className="text-sm leading-relaxed text-muted-foreground">
                   {description}
                 </p>
-              </div>
+              </motion.div>
             ))}
           </div>
         </div>
@@ -240,8 +298,13 @@ export default function LandingPage() {
 
       {/* ── CTA Banner ───────────────────────────────────────────── */}
       <section className="px-4 pb-24 sm:px-6">
-        <div className="mx-auto max-w-5xl">
-          <div className="bg-primary-gradient flex flex-col items-center justify-between gap-6 rounded-3xl px-8 py-12 text-center sm:flex-row sm:text-left">
+        <motion.div 
+          initial={{ opacity: 0, y: 40 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+          className="mx-auto max-w-5xl"
+        >
+          <div className="bg-primary-gradient flex flex-col items-center justify-between gap-6 rounded-3xl px-8 py-12 text-center sm:flex-row sm:text-left shadow-lg">
             <div className="space-y-2">
               <h2 className="font-display text-2xl font-bold text-white">
                 Ready to certify your craft?
@@ -255,13 +318,13 @@ export default function LandingPage() {
               variant="ghost"
               size="lg"
               onClick={() => navigate("/create")}
-              className="shrink-0 bg-white text-[var(--color-primary)] hover:bg-white/90 hover:text-[var(--color-primary)]"
+              className="shrink-0 bg-white text-[var(--color-primary)] hover:bg-white/90 hover:text-[var(--color-primary)] font-bold shadow-md"
             >
               Create a Certificate
               <ArrowRight className="h-4 w-4" />
             </Button>
           </div>
-        </div>
+        </motion.div>
       </section>
     </div>
   );

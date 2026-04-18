@@ -1,3 +1,4 @@
+import { motion } from "framer-motion";
 import type { ReactNode } from "react";
 import { cn } from "../../lib/utils";
 import { Button } from "../ui/button";
@@ -21,7 +22,10 @@ export function EmptyState({
   className,
 }: EmptyStateProps) {
   return (
-    <div
+    <motion.div
+      initial={{ opacity: 0, scale: 0.95 }}
+      animate={{ opacity: 1, scale: 1 }}
+      transition={{ duration: 0.4 }}
       className={cn(
         "flex flex-col items-center justify-center gap-4 py-16 text-center",
         className,
@@ -47,6 +51,6 @@ export function EmptyState({
           {action.label}
         </Button>
       )}
-    </div>
+    </motion.div>
   );
 }

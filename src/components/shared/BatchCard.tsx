@@ -18,17 +18,23 @@ interface CertCardProps {
   className?: string;
 }
 
+import { motion } from "framer-motion";
+
 export function BatchCard({ item, className }: CertCardProps) {
   const navigate = useNavigate();
 
   return (
-    <button
+    <motion.button
+      whileHover={{ y: -4, scale: 1.02 }}
+      whileTap={{ scale: 0.98 }}
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
       id={`cert-card-${item.id}`}
       onClick={() => navigate(`/item/${item.id}`)}
       className={cn(
         "group w-full rounded-2xl bg-[var(--color-card)] p-5 text-left",
         "shadow-[var(--shadow-card)] transition-all duration-300",
-        "hover:-translate-y-1 hover:shadow-[0px_32px_64px_rgba(19,27,46,0.12)] hover:ring-1 hover:ring-emerald-500/20",
+        "hover:shadow-[0px_32px_64px_rgba(19,27,46,0.12)] hover:ring-1 hover:ring-emerald-500/20",
         className,
       )}
     >
@@ -62,6 +68,6 @@ export function BatchCard({ item, className }: CertCardProps) {
           </div>
         </div>
       </div>
-    </button>
+    </motion.button>
   );
 }

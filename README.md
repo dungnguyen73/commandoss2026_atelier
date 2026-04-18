@@ -4,6 +4,8 @@
 
 The Atelier lets artisans mint tamper-proof digital certificates for handmade pieces, anchor them on-chain, and give every buyer or collector instant, trustless proof of authenticity — verified with a single QR scan.
 
+**Live Demo:** [https://dungnguyen73.github.io/commandoss2026_atelier/](https://dungnguyen73.github.io/commandoss2026_atelier/)
+
 ---
 
 ## What it does
@@ -25,7 +27,8 @@ The Atelier lets artisans mint tamper-proof digital certificates for handmade pi
 | Layer | Technology |
 |---|---|
 | Frontend | React 18 + Vite + TypeScript |
-| Styling | Tailwind CSS + shadcn/ui |
+| Styling | Tailwind CSS 4.0 |
+| Animations | Framer Motion |
 | Wallet | `@mysten/dapp-kit-react` |
 | Blockchain | SUI testnet (JSON-RPC) |
 | Smart contract | Move (`move/atelier/`) |

@@ -227,12 +227,22 @@ export default function DashboardPage() {
                 description={`Something went wrong while fetching from the SUI network: ${errorCreated}`}
               />
             ) : createdCertificates.length === 0 ? (
-              <EmptyState
-                icon={<Gem className="h-6 w-6" />}
-                title="No certificates found"
-                description="You haven't minted any certificates yet. Create one to get started."
-                action={{ label: "New Certificate", onClick: () => navigate("/create") }}
-              />
+              <div className="space-y-6">
+                <EmptyState
+                  icon={<Gem className="h-6 w-6" />}
+                  title="No certificates found"
+                  description="You haven't minted any certificates yet. Create one to get started."
+                  action={{ label: "New Certificate", onClick: () => navigate("/create") }}
+                />
+                <div className="flex justify-center">
+                  <button 
+                    onClick={() => navigate("/item/0x7b568399589d81d4a89bc448eb586c99c43d842292f74154fa7847bc08bca08b")}
+                    className="text-sm font-medium text-emerald-600 hover:text-emerald-700 underline underline-offset-4"
+                  >
+                    View a demo certificate instead
+                  </button>
+                </div>
+              </div>
             ) : (
               <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
                 {createdCertificates.map((item: any, idx: number) => (
@@ -270,11 +280,21 @@ export default function DashboardPage() {
                 description={`Something went wrong while fetching from the SUI network: ${error}`}
               />
             ) : collectedCertificates.length === 0 ? (
-              <EmptyState
-                icon={<Gem className="h-6 w-6" />}
-                title="No certificates transferred to you yet"
-                description="Once an artisan transfers a certificate to you, it will appear here for safekeeping and re-transfer."
-              />
+              <div className="space-y-6">
+                <EmptyState
+                  icon={<Gem className="h-6 w-6" />}
+                  title="No certificates transferred to you yet"
+                  description="Once an artisan transfers a certificate to you, it will appear here for safekeeping and re-transfer."
+                />
+                <div className="flex justify-center">
+                  <button 
+                    onClick={() => navigate("/item/0x7b568399589d81d4a89bc448eb586c99c43d842292f74154fa7847bc08bca08b")}
+                    className="text-sm font-medium text-emerald-600 hover:text-emerald-700 underline underline-offset-4"
+                  >
+                    View a demo certificate
+                  </button>
+                </div>
+              </div>
             ) : (
               <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
                 {collectedCertificates.map((item: any, idx: number) => (

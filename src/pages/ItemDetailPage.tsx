@@ -110,7 +110,7 @@ export default function ItemDetailPage() {
           artisanName: certificate.artisan_name || "",
           location: certificate.location || "",
           materials: certificate.materials || "",
-          note: certificate.note // Use raw note for hash to match existing certificates
+          note: cleanNote // Use unpacked note for hash verification to match creation logic
         });
 
         const anchorHash = isSimulatingAnchorTamper ? "corrupted_hash_anchor_xyz" : certificate.cert_hash;

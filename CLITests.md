@@ -15,11 +15,11 @@ We intentionally pass an invalid hash (`"bad_hash_123"`) to see if the frontend'
 
 **Run in Terminal:**
 ```bash
-sui client call \
-  --package 0x3fbeaad9f99986663cdd4147dfe85d0c9d268c450477f9104d3159fe2c34da77 \
-  --module atelier \
-  --function create_certificate \
-  --args "CLI Vase" "Ceramics" "Jane Doe" "London" "Clay" "Minted without frontend" "bad_hash_123" \
+sui client call `
+  --package 0x3fbeaad9f99986663cdd4147dfe85d0c9d268c450477f9104d3159fe2c34da77 `
+  --module atelier `
+  --function create_certificate `
+  --args "CLI Vase" "Ceramics" "Jane Doe" "London" "Clay" "Minted without frontend" "bad_hash_123" 0x6 `
   --gas-budget 50000000
 ```
 
@@ -38,11 +38,11 @@ Take the Object ID generated in Test 1. We will fake a gallery exhibition event 
 **Run in Terminal:**
 ```bash
 # Replace <OBJECT_ID> with the actual ID from Test 1
-sui client call \
-  --package 0x3fbeaad9f99986663cdd4147dfe85d0c9d268c450477f9104d3159fe2c34da77 \
-  --module atelier \
-  --function add_provenance_event \
-  --args <OBJECT_ID> "Exhibited" "London Gallery" "Featured in the main hall." \
+sui client call `
+  --package 0x3fbeaad9f99986663cdd4147dfe85d0c9d268c450477f9104d3159fe2c34da77 `
+  --module atelier `
+  --function add_provenance_event `
+  --args <OBJECT_ID> "Exhibited" "London Gallery" "Featured in the main hall." 0x6 `
   --gas-budget 50000000
 ```
 
@@ -60,11 +60,11 @@ Let's test the new routing logic in `DashboardPage.tsx`! Transfer the object to 
 **Run in Terminal:**
 ```bash
 # Replace <OBJECT_ID> and <RECIPIENT_ADDRESS> 
-sui client call \
-  --package 0x3fbeaad9f99986663cdd4147dfe85d0c9d268c450477f9104d3159fe2c34da77 \
-  --module atelier \
-  --function transfer_certificate \
-  --args <OBJECT_ID> <RECIPIENT_ADDRESS> \
+sui client call `
+  --package 0x3fbeaad9f99986663cdd4147dfe85d0c9d268c450477f9104d3159fe2c34da77 `
+  --module atelier `
+  --function transfer_certificate `
+  --args <OBJECT_ID> <RECIPIENT_ADDRESS> `
   --gas-budget 50000000
 ```
 

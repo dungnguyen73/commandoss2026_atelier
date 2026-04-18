@@ -2,20 +2,25 @@ import { NavLink } from "react-router-dom";
 import { Home, LayoutDashboard, PlusCircle, ScanQrCode } from "lucide-react";
 import { cn } from "../../lib/utils";
 
-const BOTTOM_NAV = [
-  { to: "/", icon: Home, label: "Home", end: true },
-  { to: "/dashboard", icon: LayoutDashboard, label: "Dashboard" },
-  { to: "/create", icon: PlusCircle, label: "Create" },
-  { to: "/scan", icon: ScanQrCode, label: "Scan" },
-];
+import { $roleStore } from "../../store/roleStore";
+import { useStore } from "@nanostores/react";
 
 export function BottomNav() {
+  const activeRole = useStore($roleStore);
+
+  const navLinks = [
+    { to: "/", icon: Home, label: "Home", end: true },
+    ...(activeRole === "Artisan" || activeRole === "Owner" ? [{ to: "/dashboard", icon: LayoutDashboard, label: "Dashboard" }] : []),
+    ...(activeRole === "Artisan" ? [{ to: "/create", icon: PlusCircle, label: "Create" }] : []),
+    { to: "/scan", icon: ScanQrCode, label: "Scan" },
+  ];
+
   return (
     <nav
       className="fixed bottom-0 left-0 right-0 z-50 flex h-16 items-center border-t border-[var(--color-border)] bg-[var(--color-surface-lowest)]/90 backdrop-blur-md md:hidden"
       aria-label="Bottom navigation"
     >
-      {BOTTOM_NAV.map(({ to, icon: Icon, label, end }) => (
+      {navLinks.map(({ to, icon: Icon, label, end }) => (
         <NavLink
           key={to}
           to={to}

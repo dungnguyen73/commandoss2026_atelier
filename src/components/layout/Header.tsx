@@ -4,12 +4,8 @@ import { ConnectButton } from "@mysten/dapp-kit-react/ui";
 import { Menu, X, Gem } from "lucide-react";
 import { cn } from "../../lib/utils";
 
-const NAV_LINKS = [
-  { to: "/", label: "Home", end: true },
-  { to: "/dashboard", label: "Dashboard" },
-  { to: "/create", label: "Create" },
-  { to: "/scan", label: "Scan QR" },
-];
+import { useStore } from '@nanostores/react';
+import { $roleStore, ROLES, Role } from '../../store/roleStore';
 
 function NavItem({
   to,
@@ -50,6 +46,14 @@ function NavItem({
 
 export function Header() {
   const [menuOpen, setMenuOpen] = useState(false);
+  const activeRole = useStore($roleStore);
+
+  const navLinks = [
+    { to: "/", label: "Home", end: true },
+    ...(activeRole === "Artisan" || activeRole === "Owner" ? [{ to: "/dashboard", label: "Dashboard" }] : []),
+    ...(activeRole === "Artisan" ? [{ to: "/create", label: "Create" }] : []),
+    { to: "/scan", label: "Scan QR" },
+  ];
 
   return (
     <header className="glass-nav sticky top-0 z-50">
@@ -70,13 +74,25 @@ export function Header() {
 
         {/* ── Desktop nav ── */}
         <nav className="hidden items-center gap-7 md:flex" aria-label="Main navigation">
-          {NAV_LINKS.map((link) => (
+          {navLinks.map((link) => (
             <NavItem key={link.to} {...link} />
           ))}
         </nav>
 
-        {/* ── Desktop wallet button ── */}
-        <div className="hidden items-center md:flex">
+        {/* ── Desktop wallet button & Role Switcher ── */}
+        <div className="hidden items-center gap-4 md:flex">
+          <select
+            value={activeRole}
+            onChange={(e) => $roleStore.set(e.target.value as Role)}
+            className="rounded-lg border border-[var(--color-outline-variant)] bg-[var(--color-surface-lowest)] px-3 py-1.5 text-sm text-[var(--color-foreground)] outline-none focus:border-emerald-500"
+            aria-label="Active Role"
+          >
+            {ROLES.map((role) => (
+              <option key={role} value={role}>
+                {role} View
+              </option>
+            ))}
+          </select>
           <ConnectButton />
         </div>
 
@@ -107,7 +123,21 @@ export function Header() {
           className="flex flex-col gap-1 border-t border-[var(--color-border)] bg-[var(--color-surface-lowest)] px-4 py-3"
           aria-label="Mobile navigation"
         >
-          {NAV_LINKS.map((link) => (
+          {/* Mobile Role Switcher */}
+          <div className="mb-2 px-3 py-2">
+            <select
+              value={activeRole}
+              onChange={(e) => $roleStore.set(e.target.value as Role)}
+              className="w-full rounded-lg border border-[var(--color-outline-variant)] bg-transparent px-3 py-2 text-sm text-[var(--color-foreground)] outline-none"
+            >
+              {ROLES.map((role) => (
+                <option key={role} value={role}>
+                  {role} View
+                </option>
+              ))}
+            </select>
+          </div>
+          {navLinks.map((link) => (
             <NavLink
               key={link.to}
               to={link.to}

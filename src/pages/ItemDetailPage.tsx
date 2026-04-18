@@ -1,4 +1,6 @@
 import { useParams, useNavigate } from "react-router-dom";
+import { addRecentId } from "../store/recentStore";
+
 import {
   ArrowLeft,
   ShieldCheck,
@@ -86,6 +88,13 @@ export default function ItemDetailPage() {
   const [hashStatus, setHashStatus] = useState<"pending" | "verified" | "tampered">("pending");
 
   useEffect(() => {
+    if (id) {
+      addRecentId(id);
+    }
+  }, [id]);
+
+  useEffect(() => {
+
     if (!certificate) return;
     async function verifyHash() {
       if (!certificate) return;

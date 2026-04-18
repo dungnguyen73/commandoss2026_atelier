@@ -1,4 +1,6 @@
+import { useCurrentClient } from "@mysten/dapp-kit-react";
 import { useQuery } from "@tanstack/react-query";
+import { ArtisanCertificate } from "../contracts/atelier/atelier";
 
 /* ================= TYPES ================= */
 
@@ -29,31 +31,6 @@ export interface OriginItemFields {
   status?: string;
 }
 
-interface SuiRpcResponse<T> {
-  jsonrpc: "2.0";
-  id: number;
-  result: T;
-  error?: {
-    code: number;
-    message: string;
-  };
-}
-
-interface GetObjectResult {
-  data?: {
-    objectId: string;
-    owner?: {
-      AddressOwner?: string;
-      ObjectOwner?: string;
-      Shared?: any;
-    };
-    content?: {
-      dataType: "moveObject";
-      fields: Record<string, any>;
-    };
-  };
-}
-
 interface UseBatchDataReturn {
   batch: OriginItemFields | null;
   isLoading: boolean;
@@ -62,66 +39,44 @@ interface UseBatchDataReturn {
   refetch: () => void;
 }
 
-/* ================= FETCH ================= */
-
-async function fetchObject(objectId: string): Promise<GetObjectResult> {
-  const response: Response = await fetch("https://fullnode.testnet.sui.io:443", {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify({
-      jsonrpc: "2.0",
-      id: 1,
-      method: "sui_getObject",
-      params: [
-        objectId,
-        {
-          showContent: true,
-          showType: true,
-          showOwner: true,
-        },
-      ],
-    }),
-  });
-
-  const body: SuiRpcResponse<GetObjectResult> = await response.json();
-
-  if (body?.error) {
-    throw new Error(body.error.message || "RPC Error");
-  }
-
-  return body.result;
-}
-
 /* ================= HOOK ================= */
 
 export function useBatchData(objectId?: string): UseBatchDataReturn {
+  const client = useCurrentClient();
+
   const query = useQuery({
-    queryKey: ["getObject", objectId],
+    queryKey: ["certificate-data", objectId],
     queryFn: async () => {
       if (!objectId) return null;
-      return fetchObject(objectId);
+      
+      const result = await ArtisanCertificate.get({
+        client: client as any,
+        objectId,
+        showOwner: true,
+      } as any);
+
+      return result;
     },
     enabled: !!objectId,
     staleTime: 60_000,
   });
-  /* ===== Parse data ===== */
 
   let parsedData: OriginItemFields | null = null;
   let ownerAddress: string | undefined;
 
-  const obj = query.data;
+  const res = query.data;
 
-  if (obj?.data?.content?.dataType === "moveObject") {
-    parsedData = obj.data.content.fields as OriginItemFields;
+  if (res?.json) {
+    // The decoded JSON is fully typed matching the ArtisanCertificate shape
+    parsedData = res.json as unknown as OriginItemFields;
   }
 
   // Extract owner
-  if (obj?.data?.owner) {
+  if (res?.owner) {
+    const owner = res.owner as any;
     ownerAddress =
-      obj.data.owner.AddressOwner ||
-      obj.data.owner.ObjectOwner ||
+      owner.AddressOwner ||
+      owner.ObjectOwner ||
       undefined;
   }
 

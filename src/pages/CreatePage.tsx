@@ -8,6 +8,8 @@ import { ATELIER_PACKAGE_ID } from "../config/network";
 import { computeCertificateHash } from "../lib/hash";
 import { useState, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
+import { addRecentId } from "../store/recentStore";
+
 
 interface FieldProps {
   id: string;
@@ -132,11 +134,26 @@ export default function CreatePage() {
         ]
       })(tx);
 
-      const result = await signer.signAndExecuteTransaction({ transaction: tx });
+      const result = await signer.signAndExecuteTransaction({
+        transaction: tx,
+        options: {
+          showEvents: true,
+          showObjectChanges: true,
+        }
+      });
       console.log("Certificate minted:", result);
+
+      // Extract cert_id from events and save to recent store
+      const createdEvent = result.events?.find(e => e.type.includes("::CertificateCreated"));
+      const certId = (createdEvent?.parsedJson as any)?.cert_id;
+      if (certId) {
+        addRecentId(certId);
+      }
+
       setIsSuccess(true);
       setIsMinting(false);
       setTimeout(() => navigate("/dashboard"), 2000);
+
     } catch (err: any) {
       console.error("Minting failed:", err);
       setError(err.message || "Transaction failed. Please try again.");

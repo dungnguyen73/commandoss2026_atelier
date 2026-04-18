@@ -4,6 +4,6 @@ import tailwindcss from "@tailwindcss/vite";
 
 // https://vitejs.dev/config/
 export default defineConfig({
-  base: "/commandoss2026_atelier/",
+  base: "/",
   plugins: [react(), tailwindcss()],
 });

@@ -9,6 +9,8 @@ import { $roleStore, ROLES, Role } from '../../store/roleStore';
 
 import { ZkLoginButton, ZkLoginUserBadge } from "../shared/ZkLoginComponents";
 import { useZkLogin } from "../../hooks/useZkLogin";
+import { useCurrentAccount } from "@mysten/dapp-kit-react";
+// import { useCurrentAccount } from "@mysten/dapp-kit";
 
 function NavItem({
   to,
@@ -50,6 +52,7 @@ function NavItem({
 export function Header() {
   const [menuOpen, setMenuOpen] = useState(false);
   const activeRole = useStore($roleStore);
+  const account = useCurrentAccount();
   const { session } = useZkLogin();
 
   const navLinks = [
@@ -97,13 +100,30 @@ export function Header() {
               </option>
             ))}
           </select>
-          <ConnectButton />
-          {session ? <ZkLoginUserBadge /> : <ZkLoginButton />}
+
+          {/* Mutually Exclusive Auth Display */}
+          {account ? (
+            <ConnectButton />
+          ) : session ? (
+            <ZkLoginUserBadge />
+          ) : (
+            <>
+              <ZkLoginButton />
+              <ConnectButton />
+            </>
+          )}
         </div>
 
         {/* ── Mobile: wallet + hamburger ── */}
         <div className="flex items-center gap-3 md:hidden">
-          {session ? <ZkLoginUserBadge /> : <ConnectButton />}
+          {account ? (
+            <ConnectButton />
+          ) : session ? (
+            <ZkLoginUserBadge />
+          ) : (
+            <ConnectButton />
+          )}
+
           <button
             id="mobile-menu-toggle"
             aria-label={menuOpen ? "Close menu" : "Open menu"}

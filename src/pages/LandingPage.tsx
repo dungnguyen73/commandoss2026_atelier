@@ -83,7 +83,7 @@ export default function LandingPage() {
   return (
     <div className="overflow-hidden">
       {/* ── Hero ─────────────────────────────────────────────────── */}
-      <motion.section 
+      <motion.section
         variants={containerVariants}
         initial="hidden"
         animate="visible"
@@ -143,7 +143,7 @@ export default function LandingPage() {
               View Demo
             </Button>
           </div>
-          
+
           <div className="pt-4 flex flex-col items-center gap-2">
             <p className="text-xs font-medium text-slate-400">For buyers & verifiers — no wallet needed</p>
             {session ? <ZkLoginUserBadge /> : <ZkLoginButton />}
@@ -151,7 +151,7 @@ export default function LandingPage() {
         </motion.div>
 
         {/* Hero certificate preview card */}
-        <motion.div 
+        <motion.div
           variants={itemVariants}
           className="relative mt-16 w-full max-w-md"
         >
@@ -177,9 +177,9 @@ export default function LandingPage() {
             {/* Mini provenance timeline */}
             <div className="mt-5 space-y-3 text-left">
               {[
-                { label: "Crafted",    loc: "Hanoi Workshop",  date: "Apr 2" },
-                { label: "Certified",  loc: "On-chain record", date: "Apr 4" },
-                { label: "Sold",       loc: "Gallery Maison",  date: "Apr 9" },
+                { label: "Crafted", loc: "Hanoi Workshop", date: "Apr 2" },
+                { label: "Certified", loc: "On-chain record", date: "Apr 4" },
+                { label: "Sold", loc: "Gallery Maison", date: "Apr 9" },
               ].map((event, i, arr) => (
                 <div key={i} className="flex gap-3">
                   <div className="flex flex-col items-center">
@@ -211,7 +211,7 @@ export default function LandingPage() {
         aria-labelledby="how-it-works-heading"
       >
         <div className="mx-auto max-w-5xl">
-          <motion.div 
+          <motion.div
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
@@ -262,7 +262,7 @@ export default function LandingPage() {
         aria-labelledby="features-heading"
       >
         <div className="mx-auto max-w-5xl">
-          <motion.div 
+          <motion.div
             initial={{ opacity: 0 }}
             whileInView={{ opacity: 1 }}
             viewport={{ once: true }}
@@ -306,7 +306,7 @@ export default function LandingPage() {
 
       {/* ── CTA Banner ───────────────────────────────────────────── */}
       <section className="px-4 pb-24 sm:px-6">
-        <motion.div 
+        <motion.div
           initial={{ opacity: 0, y: 40 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}

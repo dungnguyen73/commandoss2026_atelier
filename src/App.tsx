@@ -7,21 +7,25 @@ import ScanPage from "./pages/ScanPage";
 import ItemDetailPage from "./pages/ItemDetailPage";
 
 import ZkLoginCallbackPage from "./pages/ZkLoginCallbackPage";
+import { AuthSync } from "./components/auth/AuthSync";
 
 function App() {
   return (
-    <BrowserRouter basename={import.meta.env.BASE_URL}>
-      <Routes>
-        <Route element={<AppLayout />}>
-          <Route index element={<LandingPage />} />
-          <Route path="dashboard" element={<DashboardPage />} />
-          <Route path="create" element={<CreatePage />} />
-          <Route path="scan" element={<ScanPage />} />
-          <Route path="item/:id" element={<ItemDetailPage />} />
-          <Route path="auth/callback" element={<ZkLoginCallbackPage />} />
-        </Route>
-      </Routes>
-    </BrowserRouter>
+    <>
+      <AuthSync />
+      <BrowserRouter basename={import.meta.env.BASE_URL}>
+        <Routes>
+          <Route element={<AppLayout />}>
+            <Route index element={<LandingPage />} />
+            <Route path="dashboard" element={<DashboardPage />} />
+            <Route path="create" element={<CreatePage />} />
+            <Route path="scan" element={<ScanPage />} />
+            <Route path="item/:id" element={<ItemDetailPage />} />
+            <Route path="auth/callback" element={<ZkLoginCallbackPage />} />
+          </Route>
+        </Routes>
+      </BrowserRouter>
+    </>
   );
 }
 

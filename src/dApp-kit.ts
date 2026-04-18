@@ -10,4 +10,4 @@ const GRPC_URLS = {
 export const dAppKit = createDAppKit({
   networks: ['testnet', 'devnet', 'mainnet'],
   createClient: (network) => new SuiGrpcClient({ network, baseUrl: GRPC_URLS[network] }),
-});
+});

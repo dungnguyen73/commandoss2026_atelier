@@ -17,7 +17,9 @@ import {
   PlusCircle,
   Send,
   X,
+  Activity,
 } from "lucide-react";
+
 import { PageContainer } from "../components/layout/PageContainer";
 import { Button } from "../components/ui/button";
 import { StatusBadge } from "../components/shared/StatusBadge";
@@ -65,6 +67,8 @@ export default function ItemDetailPage() {
   const navigate = useNavigate();
   const account = useCurrentAccount();
   const dAppKit = useDAppKit();
+
+  const [copied, setCopied] = useState(false);
 
   const signer = useMemo(() => {
     try {
@@ -125,6 +129,14 @@ export default function ItemDetailPage() {
 
   function handleCopy() {
     navigator.clipboard.writeText(window.location.href).catch(() => { });
+  }
+
+  function handleCopyObjectIdToClipBoard(id: string) {
+    if (!id) return;
+    navigator.clipboard.writeText(id).catch(() => { });
+    setCopied(true);
+
+
   }
 
   const isOwner = !!account && !!ownerAddress && ownerAddress === account.address;
@@ -539,10 +551,10 @@ export default function ItemDetailPage() {
               id="item-action-share"
               variant="secondary"
               className="w-full py-6 flex-col gap-1 text-[10px] font-bold"
-              onClick={() => { }}
+              onClick={() => { handleCopyObjectIdToClipBoard(id ?? "") }}
             >
               <Share2 className="h-4 w-4" />
-              SHARE
+              {copied ? "Copied!" : "Copy"}
             </Button>
             <Button
               id="item-action-copy"

@@ -17,7 +17,13 @@ import {
   PlusCircle,
   Send,
   X,
+  Activity,
+  ShieldAlert,
+  RefreshCw,
+  Eye,
+  EyeOff,
 } from "lucide-react";
+
 import { PageContainer } from "../components/layout/PageContainer";
 import { Button } from "../components/ui/button";
 import { StatusBadge } from "../components/shared/StatusBadge";
@@ -30,6 +36,8 @@ import { addProvenanceEvent, transferCertificate } from "../contracts/atelier/at
 import { ATELIER_PACKAGE_ID } from "../config/network";
 import { computeCertificateHash } from "../lib/hash";
 import type { CertStatus } from "../components/shared/StatusBadge";
+import { cn } from "../lib/utils";
+
 
 function formatDate(timestamp: string | number) {
   const date = new Date(Number(timestamp));
@@ -66,6 +74,9 @@ export default function ItemDetailPage() {
   const account = useCurrentAccount();
   const dAppKit = useDAppKit();
 
+  const [copied, setCopied] = useState(false);
+
+
   const signer = useMemo(() => {
     try {
       if (typeof CurrentAccountSigner !== "undefined" && dAppKit) {
@@ -87,6 +98,12 @@ export default function ItemDetailPage() {
   // Validation state
   const [hashStatus, setHashStatus] = useState<"pending" | "verified" | "tampered">("pending");
 
+  // Simulation states for testing (Not for production)
+  const [isSimulatingTamper, setIsSimulatingTamper] = useState(false);
+  const [isSimulatingAnchorTamper, setIsSimulatingAnchorTamper] = useState(false);
+  const [showAuditPanel, setShowAuditPanel] = useState(false);
+
+
   useEffect(() => {
     if (id) {
       addRecentId(id);
@@ -100,14 +117,17 @@ export default function ItemDetailPage() {
       if (!certificate) return;
       try {
         const computed = await computeCertificateHash({
-          name: certificate.name || "",
+          name: isSimulatingTamper ? "!!! TAMPERED NAME !!!" : (certificate.name || ""),
           category: certificate.category || "",
           artisanName: certificate.artisan_name || "",
           location: certificate.location || "",
           materials: certificate.materials || "",
           note: certificate.note
         });
-        if (computed === certificate.cert_hash) {
+
+        const anchorHash = isSimulatingAnchorTamper ? "corrupted_hash_anchor_xyz" : certificate.cert_hash;
+
+        if (computed === anchorHash) {
           setHashStatus("verified");
         } else {
           setHashStatus("tampered");
@@ -117,7 +137,8 @@ export default function ItemDetailPage() {
       }
     }
     verifyHash();
-  }, [certificate]);
+  }, [certificate, isSimulatingTamper, isSimulatingAnchorTamper]);
+
 
   // Form data
   const [eventData, setEventData] = useState({ type: "", location: "", note: "" });
@@ -126,6 +147,13 @@ export default function ItemDetailPage() {
   function handleCopy() {
     navigator.clipboard.writeText(window.location.href).catch(() => { });
   }
+
+  function handleCopyObjectIdToClipBoard(id: string) {
+    if (!id) return;
+    navigator.clipboard.writeText(id).catch(() => { });
+    setCopied(true);
+  }
+
 
   const isOwner = !!account && !!ownerAddress && ownerAddress === account.address;
 
@@ -539,11 +567,12 @@ export default function ItemDetailPage() {
               id="item-action-share"
               variant="secondary"
               className="w-full py-6 flex-col gap-1 text-[10px] font-bold"
-              onClick={() => { }}
+              onClick={() => { handleCopyObjectIdToClipBoard(id ?? "") }}
             >
               <Share2 className="h-4 w-4" />
-              SHARE
+              {copied ? "Copied!" : "Copy"}
             </Button>
+
             <Button
               id="item-action-copy"
               variant="secondary"
@@ -556,6 +585,77 @@ export default function ItemDetailPage() {
           </div>
         </div>
       </div>
+
+      {/* ── Security Audit Panel (Dev/Test Only) ── */}
+      <div className="mt-12 rounded-3xl overflow-hidden border border-red-200 bg-red-50/20 backdrop-blur-sm animate-in fade-in slide-in-from-bottom-8 duration-1000 delay-500">
+        <div className="p-1 px-4 bg-red-500 flex justify-between items-center">
+           <span className="text-[10px] font-black text-white uppercase tracking-[0.3em]">Security Audit Lab</span>
+           <button 
+            onClick={() => setShowAuditPanel(!showAuditPanel)}
+            className="text-white hover:bg-white/10 p-1 rounded transition-colors"
+           >
+             {showAuditPanel ? <EyeOff className="h-3 w-3" /> : <Eye className="h-3 w-3" />}
+           </button>
+        </div>
+        
+        {showAuditPanel && (
+          <div className="p-6 grid gap-6 md:grid-cols-3">
+            <div className="space-y-2">
+              <h4 className="text-xs font-bold text-red-900 uppercase tracking-wider flex items-center gap-2">
+                <ShieldAlert className="h-4 w-4" /> Simulation Triggers
+              </h4>
+              <p className="text-[11px] text-red-700/70 leading-relaxed">
+                Manually induce data corruption to test the frontend's re-verification engine.
+              </p>
+            </div>
+
+            <div className="flex flex-col gap-3">
+              <Button
+                variant="secondary"
+                size="sm"
+                onClick={() => setIsSimulatingTamper(!isSimulatingTamper)}
+                className={cn(
+                  "justify-start text-xs font-bold transition-all",
+                  isSimulatingTamper ? "bg-red-100 text-red-700 border-red-300" : "bg-white"
+                )}
+              >
+                <div className={cn("h-2 w-2 rounded-full mr-2", isSimulatingTamper ? "bg-red-500 animate-pulse" : "bg-gray-300")} />
+                {isSimulatingTamper ? "Stop Data Corruption" : "Corrupt Metadata"}
+              </Button>
+
+              <Button
+                variant="secondary"
+                size="sm"
+                onClick={() => setIsSimulatingAnchorTamper(!isSimulatingAnchorTamper)}
+                className={cn(
+                  "justify-start text-xs font-bold transition-all",
+                  isSimulatingAnchorTamper ? "bg-red-100 text-red-700 border-red-300" : "bg-white"
+                )}
+              >
+                <div className={cn("h-2 w-2 rounded-full mr-2", isSimulatingAnchorTamper ? "bg-red-500 animate-pulse" : "bg-gray-300")} />
+                {isSimulatingAnchorTamper ? "Release Hash Lock" : "Corrupt Hash Anchor"}
+              </Button>
+            </div>
+
+            <div className="flex flex-col justify-center">
+              <Button
+                variant="secondary"
+                size="sm"
+                onClick={() => {
+                  setIsSimulatingTamper(false);
+                  setIsSimulatingAnchorTamper(false);
+                }}
+                disabled={!isSimulatingTamper && !isSimulatingAnchorTamper}
+                className="bg-white text-xs font-bold"
+              >
+                <RefreshCw className="h-3 w-3 mr-2" />
+                Restore Security State
+              </Button>
+            </div>
+          </div>
+        )}
+      </div>
     </PageContainer>
+
   );
 }

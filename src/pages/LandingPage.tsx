@@ -10,6 +10,9 @@ import {
 import { Button } from "../components/ui/button";
 import { motion } from "framer-motion";
 
+import { ZkLoginButton, ZkLoginUserBadge } from "../components/shared/ZkLoginComponents";
+import { useZkLogin } from "../hooks/useZkLogin";
+
 const containerVariants = {
   hidden: { opacity: 0 },
   visible: {
@@ -75,6 +78,7 @@ const FEATURES = [
 
 export default function LandingPage() {
   const navigate = useNavigate();
+  const { session } = useZkLogin();
 
   return (
     <div className="overflow-hidden">
@@ -138,6 +142,11 @@ export default function LandingPage() {
             >
               View Demo
             </Button>
+          </div>
+          
+          <div className="pt-4 flex flex-col items-center gap-2">
+            <p className="text-xs font-medium text-slate-400">For buyers & verifiers — no wallet needed</p>
+            {session ? <ZkLoginUserBadge /> : <ZkLoginButton />}
           </div>
         </motion.div>
 

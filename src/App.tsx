@@ -6,6 +6,8 @@ import CreatePage from "./pages/CreatePage";
 import ScanPage from "./pages/ScanPage";
 import ItemDetailPage from "./pages/ItemDetailPage";
 
+import ZkLoginCallbackPage from "./pages/ZkLoginCallbackPage";
+
 function App() {
   return (
     <BrowserRouter basename={import.meta.env.BASE_URL}>
@@ -16,6 +18,7 @@ function App() {
           <Route path="create" element={<CreatePage />} />
           <Route path="scan" element={<ScanPage />} />
           <Route path="item/:id" element={<ItemDetailPage />} />
+          <Route path="auth/callback" element={<ZkLoginCallbackPage />} />
         </Route>
       </Routes>
     </BrowserRouter>

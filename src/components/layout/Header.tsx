@@ -7,6 +7,9 @@ import { cn } from "../../lib/utils";
 import { useStore } from '@nanostores/react';
 import { $roleStore, ROLES, Role } from '../../store/roleStore';
 
+import { ZkLoginButton, ZkLoginUserBadge } from "../shared/ZkLoginComponents";
+import { useZkLogin } from "../../hooks/useZkLogin";
+
 function NavItem({
   to,
   label,
@@ -47,6 +50,7 @@ function NavItem({
 export function Header() {
   const [menuOpen, setMenuOpen] = useState(false);
   const activeRole = useStore($roleStore);
+  const { session } = useZkLogin();
 
   const navLinks = [
     { to: "/", label: "Home", end: true },
@@ -94,11 +98,12 @@ export function Header() {
             ))}
           </select>
           <ConnectButton />
+          {session ? <ZkLoginUserBadge /> : <ZkLoginButton />}
         </div>
 
         {/* ── Mobile: wallet + hamburger ── */}
         <div className="flex items-center gap-3 md:hidden">
-          <ConnectButton />
+          {session ? <ZkLoginUserBadge /> : <ConnectButton />}
           <button
             id="mobile-menu-toggle"
             aria-label={menuOpen ? "Close menu" : "Open menu"}

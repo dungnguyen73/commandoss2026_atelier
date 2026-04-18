@@ -11,6 +11,8 @@ export interface CertItem {
   location: string;
   status: CertStatus;
   createdAt: string;
+  imageUrl?: string; // Added for UI/UX upgrade
+  artisanName?: string;
 }
 
 interface CertCardProps {
@@ -25,46 +27,73 @@ export function BatchCard({ item, className }: CertCardProps) {
 
   return (
     <motion.button
-      whileHover={{ y: -4, scale: 1.02 }}
+      whileHover={{ y: -6, scale: 1.01 }}
       whileTap={{ scale: 0.98 }}
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       id={`cert-card-${item.id}`}
       onClick={() => navigate(`/item/${item.id}`)}
       className={cn(
-        "group w-full rounded-2xl bg-[var(--color-card)] p-5 text-left",
-        "shadow-[var(--shadow-card)] transition-all duration-300",
-        "hover:shadow-[0px_32px_64px_rgba(19,27,46,0.12)] hover:ring-1 hover:ring-emerald-500/20",
+        "group relative w-full overflow-hidden rounded-[2rem] bg-(--color-card) text-left",
+        "shadow-[var(--shadow-card)] transition-all duration-500",
+        "hover:shadow-[0px_40px_80px_-12px_rgba(10,77,44,0.15)]",
         className,
       )}
     >
-      <div className="flex items-start justify-between gap-4">
-        <div className="flex items-start gap-4">
-          <div className="mt-0.5 flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-[var(--color-surface-low)] transition-colors duration-300 group-hover:bg-emerald-50">
-            <Gem className="h-6 w-6 text-[var(--color-primary)] transition-transform duration-300 group-hover:scale-110" />
+      {/* ── Image Section ── */}
+      <div className="relative aspect-[4/3] w-full overflow-hidden bg-(--color-surface-low)">
+        {item.imageUrl ? (
+          <img
+            src={item.imageUrl}
+            alt={item.name}
+            className="h-full w-full object-cover transition-transform duration-700 group-hover:scale-110"
+          />
+        ) : (
+          <div className="flex h-full w-full items-center justify-center bg-gradient-to-br from-(--color-surface-low) to-(--color-primary-container)/20 text-(--color-primary)/20">
+            <Gem className="h-16 w-16 rotate-12 transition-transform duration-700 group-hover:rotate-0 group-hover:scale-110" />
           </div>
+        )}
+        
+        {/* Status Overlay */}
+        <div className="absolute top-4 right-4 z-10">
+          <StatusBadge status={item.status} />
+        </div>
+      </div>
+
+      {/* ── Content Section ── */}
+      <div className="p-6">
+        <div className="flex items-start justify-between gap-4">
           <div className="space-y-1">
-            <p className="font-semibold leading-snug text-[var(--color-foreground)] transition-colors duration-300 group-hover:text-emerald-900">
-              {item.name}
+            <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-(--color-primary)/60">
+              {item.category}
             </p>
-            <div className="flex flex-col gap-0.5">
-              <p className="text-sm text-[var(--color-muted-foreground)]">
-                {item.category}
+            <h3 className="font-display text-lg font-bold leading-tight text-(--color-foreground) group-hover:text-(--color-primary) transition-colors duration-300">
+              {item.name}
+            </h3>
+            
+            <div className="mt-3 flex flex-col gap-1">
+              <p className="text-xs font-medium text-muted-foreground flex items-center gap-1.5">
+                <span className="h-1 w-1 rounded-full bg-(--color-primary)/40" />
+                {item.artisanName || "Verified Artisan"}
               </p>
-              <p className="text-xs text-[var(--color-muted-foreground)] flex items-center gap-1">
-                <span className="inline-block w-1 h-1 rounded-full bg-emerald-500/40" />
+              <p className="text-xs text-muted-foreground/70 flex items-center gap-1.5">
+                <span className="h-1 w-1 rounded-full bg-slate-300" />
                 {item.location}
               </p>
             </div>
-            <p className="mt-2 text-[10px] font-medium uppercase tracking-wider text-muted-foreground/60">
-              Minted {item.createdAt}
-            </p>
+          </div>
+          
+          <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-(--color-surface-low) text-(--color-primary) opacity-0 transition-all duration-500 -translate-x-2 group-hover:opacity-100 group-hover:translate-x-0">
+            <ArrowRight className="h-5 w-5" />
           </div>
         </div>
-        <div className="flex shrink-0 flex-col items-end justify-between self-stretch">
-          <StatusBadge status={item.status} />
-          <div className="flex h-8 w-8 items-center justify-center rounded-full opacity-0 transition-all duration-300 group-hover:opacity-100 group-hover:bg-emerald-50">
-            <ArrowRight className="h-4 w-4 text-emerald-600" />
+        
+        <div className="mt-6 flex items-center justify-between border-t border-(--color-outline-variant) pt-4">
+          <p className="text-[10px] font-semibold text-muted-foreground/50 uppercase tracking-widest">
+            {item.createdAt}
+          </p>
+          <div className="flex items-center gap-1 text-[10px] font-bold text-(--color-primary) uppercase tracking-tighter">
+            PROVENANCE ANCHORED
           </div>
         </div>
       </div>

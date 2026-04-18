@@ -5,7 +5,7 @@ module atelier::atelier_tests {
     use std::string;
     use sui::clock;
     use sui::test_scenario::{Self as ts, Scenario};
-    use atelier::atelier::{Self, ArtisanCertificate};
+    use atelier::atelier::{Self, ArtisanCertificate, ArtisanProfile};
 
     // ── Helpers ────────────────────────────────────────────────────────────────
 
@@ -15,10 +15,11 @@ module atelier::atelier_tests {
     fun s(bytes: vector<u8>): string::String { string::utf8(bytes) }
 
     /// Mint a certificate inside a test scenario and return it.
-    fun mint_cert(scenario: &mut Scenario) {
+    fun mint_cert(scenario: &mut Scenario, profile: &mut ArtisanProfile) {
         let clock = clock::create_for_testing(ts::ctx(scenario));
 
         atelier::create_certificate(
+            profile,
             s(b"Celadon Teapot No.12"),
             s(b"Ceramics"),
             s(b"Nguyen Thi Lan"),
@@ -40,7 +41,12 @@ module atelier::atelier_tests {
         let mut scenario = ts::begin(ARTISAN);
 
         ts::next_tx(&mut scenario, ARTISAN);
-        mint_cert(&mut scenario);
+        atelier::create_profile(ts::ctx(&mut scenario));
+
+        ts::next_tx(&mut scenario, ARTISAN);
+        let mut profile = ts::take_from_sender<ArtisanProfile>(&scenario);
+        mint_cert(&mut scenario, &mut profile);
+        ts::return_to_sender(&scenario, profile);
 
         // Confirm the artisan received the certificate object.
         ts::next_tx(&mut scenario, ARTISAN);
@@ -67,7 +73,12 @@ module atelier::atelier_tests {
         let mut scenario = ts::begin(ARTISAN);
 
         ts::next_tx(&mut scenario, ARTISAN);
-        mint_cert(&mut scenario);
+        atelier::create_profile(ts::ctx(&mut scenario));
+
+        ts::next_tx(&mut scenario, ARTISAN);
+        let mut profile = ts::take_from_sender<ArtisanProfile>(&scenario);
+        mint_cert(&mut scenario, &mut profile);
+        ts::return_to_sender(&scenario, profile);
 
         ts::next_tx(&mut scenario, ARTISAN);
         {
@@ -92,7 +103,12 @@ module atelier::atelier_tests {
         let mut scenario = ts::begin(ARTISAN);
 
         ts::next_tx(&mut scenario, ARTISAN);
-        mint_cert(&mut scenario);
+        atelier::create_profile(ts::ctx(&mut scenario));
+
+        ts::next_tx(&mut scenario, ARTISAN);
+        let mut profile = ts::take_from_sender<ArtisanProfile>(&scenario);
+        mint_cert(&mut scenario, &mut profile);
+        ts::return_to_sender(&scenario, profile);
 
         ts::next_tx(&mut scenario, ARTISAN);
         {
@@ -123,7 +139,12 @@ module atelier::atelier_tests {
         let mut scenario = ts::begin(ARTISAN);
 
         ts::next_tx(&mut scenario, ARTISAN);
-        mint_cert(&mut scenario);
+        atelier::create_profile(ts::ctx(&mut scenario));
+
+        ts::next_tx(&mut scenario, ARTISAN);
+        let mut profile = ts::take_from_sender<ArtisanProfile>(&scenario);
+        mint_cert(&mut scenario, &mut profile);
+        ts::return_to_sender(&scenario, profile);
 
         ts::next_tx(&mut scenario, ARTISAN);
         {
@@ -145,7 +166,12 @@ module atelier::atelier_tests {
         let mut scenario = ts::begin(ARTISAN);
 
         ts::next_tx(&mut scenario, ARTISAN);
-        mint_cert(&mut scenario);
+        atelier::create_profile(ts::ctx(&mut scenario));
+
+        ts::next_tx(&mut scenario, ARTISAN);
+        let mut profile = ts::take_from_sender<ArtisanProfile>(&scenario);
+        mint_cert(&mut scenario, &mut profile);
+        ts::return_to_sender(&scenario, profile);
 
         // Artisan transfers to buyer.
         ts::next_tx(&mut scenario, ARTISAN);
@@ -178,7 +204,12 @@ module atelier::atelier_tests {
         let mut scenario = ts::begin(ARTISAN);
 
         ts::next_tx(&mut scenario, ARTISAN);
-        mint_cert(&mut scenario);
+        atelier::create_profile(ts::ctx(&mut scenario));
+
+        ts::next_tx(&mut scenario, ARTISAN);
+        let mut profile = ts::take_from_sender<ArtisanProfile>(&scenario);
+        mint_cert(&mut scenario, &mut profile);
+        ts::return_to_sender(&scenario, profile);
 
         ts::next_tx(&mut scenario, ARTISAN);
         {
@@ -201,9 +232,15 @@ module atelier::atelier_tests {
     fun test_full_lifecycle() {
         let mut scenario = ts::begin(ARTISAN);
 
+        // 0. Setup profile.
+        ts::next_tx(&mut scenario, ARTISAN);
+        atelier::create_profile(ts::ctx(&mut scenario));
+
         // 1. Artisan mints.
         ts::next_tx(&mut scenario, ARTISAN);
-        mint_cert(&mut scenario);
+        let mut profile = ts::take_from_sender<ArtisanProfile>(&scenario);
+        mint_cert(&mut scenario, &mut profile);
+        ts::return_to_sender(&scenario, profile);
 
         // 2. Artisan certifies.
         ts::next_tx(&mut scenario, ARTISAN);

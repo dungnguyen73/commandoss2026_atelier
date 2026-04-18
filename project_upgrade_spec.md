@@ -393,24 +393,19 @@ If image support is not fully implemented in contract storage, the upgrade shoul
 
 ## 16. Implementation Priorities
 
-### Phase A
-- global role store,
-- dashboard split,
-- recent items section,
-- deduplication logic.
 
-### Phase B
+### Phase 6
 - premium certificate page,
 - story card,
 - image support,
 - better empty states and cards.
 
-### Phase C
+### Phase 7
 - ownership transfer feedback,
 - verification polish,
 - status banner improvements.
 
-### Phase D
+### Phase 8
 - final visual refinement,
 - motion polish,
 - responsive layout cleanup.

@@ -2,26 +2,9 @@ import { useParams, useNavigate } from "react-router-dom";
 import { addRecentId } from "../store/recentStore";
 
 import {
-  ArrowLeft,
-  ShieldCheck,
-  AlertTriangle,
-  MapPin,
-  Calendar,
-  Gem,
-  Share2,
-  Copy,
-  CheckCircle2,
-  Award,
-  Loader2,
-  AlertCircle,
-  PlusCircle,
-  Send,
-  X,
-  Activity,
-  ShieldAlert,
-  RefreshCw,
-  Eye,
-  EyeOff,
+  ArrowLeft, Gem, MapPin, User, Calendar, History,
+  ShieldCheck, ShieldAlert, PlusCircle, Send, X, Loader2,
+  ExternalLink, Copy, Check, Activity, Search, RefreshCw, Eye, EyeOff
 } from "lucide-react";
 
 import { PageContainer } from "../components/layout/PageContainer";
@@ -38,6 +21,7 @@ import { ATELIER_PACKAGE_ID } from "../config/network";
 import { computeCertificateHash } from "../lib/hash";
 import type { CertStatus } from "../components/shared/StatusBadge";
 import { cn } from "../lib/utils";
+import { unpackNote } from "../lib/unpack";
 
 
 function formatDate(timestamp: string | number) {
@@ -57,13 +41,13 @@ function getEventIcon(type: string) {
     case "created":
       return Gem;
     case "certified":
-      return Award;
+      return History;
     case "sold":
     case "transferred":
       return Send;
     case "delivered":
     case "exhibited":
-      return CheckCircle2;
+      return Check;
     default:
       return Gem;
   }
@@ -117,13 +101,16 @@ export default function ItemDetailPage() {
     async function verifyHash() {
       if (!certificate) return;
       try {
+        // Unpack image/note but use BOTH for original hash verification to maintain legacy consistency
+        const { note: cleanNote } = unpackNote(certificate.note || "");
+
         const computed = await computeCertificateHash({
           name: isSimulatingTamper ? "!!! TAMPERED NAME !!!" : (certificate.name || ""),
           category: certificate.category || "",
           artisanName: certificate.artisan_name || "",
           location: certificate.location || "",
           materials: certificate.materials || "",
-          note: certificate.note
+          note: certificate.note // Use raw note for hash to match existing certificates
         });
 
         const anchorHash = isSimulatingAnchorTamper ? "corrupted_hash_anchor_xyz" : certificate.cert_hash;
@@ -147,14 +134,29 @@ export default function ItemDetailPage() {
 
   function handleCopy() {
     navigator.clipboard.writeText(window.location.href).catch(() => { });
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
   }
 
   function handleCopyObjectIdToClipBoard(id: string) {
     if (!id) return;
     navigator.clipboard.writeText(id).catch(() => { });
     setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
   }
   const isOwner = !!account && !!ownerAddress && ownerAddress === account.address;
+
+  // Derive display status — default "Verified" for on-chain objects without explicit status field
+  const { imageUrl, note: displayNote } = useMemo(() => unpackNote(certificate?.note || ""), [certificate?.note]);
+
+  const events = (certificate?.history || []).map((ev: any, i: number) => ({
+    icon: getEventIcon(ev.event_type),
+    label: ev.event_type,
+    location: ev.location,
+    date: formatDate(ev.timestamp),
+    note: unpackNote(ev.note).note, // Clean up history notes too
+    isFirst: i === 0,
+  }));
 
   async function handleAddEvent(e: React.FormEvent) {
     e.preventDefault();
@@ -218,7 +220,7 @@ export default function ItemDetailPage() {
       <PageContainer>
         <div className="flex flex-col items-center justify-center py-20 text-center">
           <div className="mb-4 rounded-full bg-red-50 p-4 text-red-500">
-            <AlertCircle className="h-10 w-10" />
+            <ShieldAlert className="h-10 w-10" />
           </div>
           <h1 className="text-xl font-bold text-(--color-foreground)">Certificate Not Found</h1>
           <p className="mt-2 text-muted-foreground">
@@ -232,429 +234,301 @@ export default function ItemDetailPage() {
     );
   }
 
-  const events = (certificate?.history || []).map((ev: any, i: number) => ({
-    icon: getEventIcon(ev.event_type),
-    label: ev.event_type,
-    location: ev.location,
-    date: formatDate(ev.timestamp),
-    note: ev.note,
-    isFirst: i === 0,
-  }));
 
-  // Derive display status — default "Verified" for on-chain objects without explicit status field
-  const displayStatus: CertStatus =
-    certificate.status
-      ? (certificate.status as CertStatus)
-      : "Verified";
-
-  const inputBase =
-    "w-full rounded-xl bg-[var(--color-surface-lowest)] border border-[var(--color-outline-variant)] px-4 py-2.5 text-sm outline-none focus:border-[var(--color-primary)] focus:ring-1 focus:ring-[var(--color-primary)] transition-all";
-
+  const displayStatus: CertStatus = certificate.status ? (certificate.status as CertStatus) : "Verified";
+  const inputBase = "w-full rounded-2xl bg-(--color-surface-low) border border-(--color-outline-variant) px-5 py-3 text-sm outline-none focus:ring-2 focus:ring-(--color-primary)/20 focus:border-(--color-primary) transition-all";
   const isTampered = hashStatus === "tampered" || displayStatus === "Tampered";
 
   return (
     <PageContainer>
-      {/* ── Back ── */}
+      {/* ── Breadcrumb ── */}
       <button
         id="item-detail-back"
         onClick={() => navigate(-1)}
-        className="mb-6 flex items-center gap-1.5 text-sm font-medium text-[var(--color-muted-foreground)] hover:text-[var(--color-foreground)] transition-colors animate-in fade-in duration-500"
-        aria-label="Go back"
+        className="group mb-8 flex items-center gap-2 text-sm font-semibold text-muted-foreground hover:text-(--color-primary) transition-all animate-in fade-in duration-700"
       >
-        <ArrowLeft className="h-4 w-4" />
-        Back
+        <div className="flex h-8 w-8 items-center justify-center rounded-full bg-white shadow-sm ring-1 ring-slate-200 group-hover:ring-(--color-primary)/20 group-hover:bg-(--color-surface-low)">
+          <ArrowLeft className="h-4 w-4" />
+        </div>
+        Return to Dashboard
       </button>
 
-      <div className="grid gap-6 lg:grid-cols-3">
-        {/* ── Left: main content ── */}
-        <div className="space-y-6 lg:col-span-2 animate-in fade-in slide-in-from-bottom-4 duration-700">
+      {/* ── Hero Story Layout ── */}
+      <div className="grid gap-10 lg:grid-cols-12 items-start">
 
-          {/* Certificate header card */}
-          <div className="rounded-2xl bg-(--color-card) p-6 shadow-[var(--shadow-card)] sm:p-8 animate-in scale-in duration-500">
-            <div className="flex items-start justify-between gap-4">
-              <div className="space-y-2">
-                <p className="text-xs font-semibold uppercase tracking-widest text-[var(--color-muted-foreground)]">
-                  Artisan Certificate
-                </p>
-                <h1 className="font-display text-2xl font-bold leading-tight text-[var(--color-foreground)]">
-                  {certificate.name || "Untitled Certificate"}
-                </h1>
-                <div className="flex flex-wrap items-center gap-3 text-sm text-[var(--color-muted-foreground)]">
-                  <span className="flex items-center gap-1 bg-emerald-50/50 px-2 py-0.5 rounded-full">
-                    <MapPin className="h-3.5 w-3.5 text-emerald-600" />
-                    {certificate.location || "Unknown"}
-                  </span>
-                  <span className="flex items-center gap-1 bg-emerald-50/50 px-2 py-0.5 rounded-full">
-                    <Calendar className="h-3.5 w-3.5 text-emerald-600" />
-                    {certificate.created_at
-                      ? new Date(Number(certificate.created_at)).toLocaleDateString()
-                      : "Unknown"}
-                  </span>
+        {/* ── Left Sidebar (Product Image & Identity) ── */}
+        <div className="space-y-8 lg:col-span-5 animate-in fade-in slide-in-from-bottom-8 duration-1000">
+
+          {/* Main Product Card */}
+          <div className="overflow-hidden rounded-[2.5rem] bg-white shadow-[0px_40px_80px_-20px_rgba(10,77,44,0.12)] ring-1 ring-slate-100">
+            <div className={`aspect-[4/5] bg-(--color-surface-low) relative group`}>
+              {imageUrl ? (
+                <img src={imageUrl} alt={certificate.name} className="h-full w-full object-cover transition-transform duration-1000 group-hover:scale-105" />
+              ) : (
+                <div className="flex h-full w-full items-center justify-center bg-gradient-to-br from-slate-50 to-emerald-50 text-(--color-primary)/10">
+                  <Gem className="h-24 w-24 rotate-12" />
+                </div>
+              )}
+
+              {/* Identity Float */}
+              <div className="absolute bottom-6 left-6 right-6 p-6 glass-pill rounded-3xl flex items-center justify-between gap-4">
+                <div>
+                  <p className="text-[10px] font-black uppercase tracking-[0.2em] text-(--color-primary)/70 mb-1">Authentic Registry</p>
+                  <p className="font-mono text-xs font-bold text-(--color-foreground) truncate max-w-[12rem]">{id}</p>
+                </div>
+                <div className="flex items-center gap-2">
+                  <Button variant="ghost" size="sm" onClick={() => window.open(`https://suiscan.xyz/mainnet/object/${id}`, "_blank")} className="h-10 w-10 rounded-2xl bg-white shadow-sm ring-1 ring-slate-100 p-0 text-slate-400 hover:text-(--color-primary) transition-all">
+                    <ExternalLink className="h-4 w-4" />
+                  </Button>
+                  <Button variant="secondary" size="sm" className="h-10 w-10 rounded-full" onClick={() => handleCopyObjectIdToClipBoard(id!)}>
+                    {copied ? <Check className="h-4 w-4 text-emerald-600" /> : <Copy className="h-4 w-4" />}
+                  </Button>
+                </div>
+              </div>
+            </div>
+
+            <div className="p-8 space-y-6">
+              <div className="flex flex-col gap-2">
+                <span className="text-xs font-bold text-(--color-primary) uppercase tracking-widest">{certificate.category}</span>
+                <h1 className="font-display text-4xl font-extrabold leading-[1.1] text-(--color-foreground)">{certificate.name}</h1>
+              </div>
+
+              <div className="grid grid-cols-2 gap-4 pt-4 border-t border-slate-100">
+                <div>
+                  <dt className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest mb-1">Created By</dt>
+                  <dd className="text-sm font-bold text-(--color-foreground)">{certificate.artisan_name}</dd>
+                </div>
+                <div>
+                  <dt className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest mb-1">Origin</dt>
+                  <dd className="text-sm font-bold text-(--color-foreground) flex items-center gap-1">
+                    <MapPin className="h-3 w-3 text-(--color-primary)" />
+                    {certificate.location}
+                  </dd>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* QR & Verification Status */}
+          <div className="rounded-[2rem] bg-white p-8 shadow-sm ring-1 ring-slate-100">
+            <div className="flex flex-col items-center gap-6">
+              <div className="p-4 bg-white rounded-3xl ring-8 ring-emerald-50/50">
+                <QRCode value={window.location.href} size={160} level="H" fgColor="#1a1f18" />
+              </div>
+              <div className="text-center space-y-1">
+                <p className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground">Verification Anchor</p>
+                <p className="text-xs text-muted-foreground">Scan to verify this item's on-chain existence instantly.</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* ── Main Content Area (Story & Timeline) ── */}
+        <div className="space-y-10 lg:col-span-7 animate-in fade-in slide-in-from-right-8 duration-1000 delay-200">
+
+          {/* Premium Trust Seal Banner */}
+          <div className={cn(
+            "relative overflow-hidden rounded-[2.5rem] p-8 transition-all duration-700",
+            isTampered
+              ? "bg-red-50 ring-1 ring-red-200/50 text-red-900"
+              : "bg-(--color-primary-container)/30 ring-1 ring-(--color-primary)/10 text-(--color-primary)"
+          )}>
+            <div className="relative z-10 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-6">
+              <div className="flex items-center gap-6">
+                <div className={cn(
+                  "flex h-20 w-20 shrink-0 items-center justify-center rounded-3xl shadow-xl transition-transform duration-700 hover:rotate-6",
+                  isTampered ? "bg-red-600 text-white shadow-red-200" : "bg-(--color-primary) text-white shadow-emerald-200"
+                )}>
+                  {hashStatus === "pending" ? (
+                    <Loader2 className="h-10 w-10 animate-spin" />
+                  ) : isTampered ? (
+                    <ShieldAlert className="h-10 w-10" />
+                  ) : (
+                    <ShieldCheck className="h-10 w-10" />
+                  )}
+                </div>
+                <div>
+                  <h2 className="font-display text-2xl font-black uppercase tracking-tight">
+                    {hashStatus === "pending" ? "Validating Proof..." : isTampered ? "Security Breach" : "Trust-Verified"}
+                  </h2>
+                  <p className="text-sm font-medium opacity-80 mt-1 max-w-sm">
+                    {isTampered
+                      ? "Warning: This certificate has been compromised. The descriptive metadata does not match the on-chain registry."
+                      : "This piece is authenticated by a cryptographic hash anchored on the SUI blockchain. Its metadata and history are immutable."}
+                  </p>
                 </div>
               </div>
               <StatusBadge status={displayStatus} />
             </div>
+
+            {/* Background Decoration */}
+            <Gem className={cn(
+              "absolute -bottom-10 -right-10 h-40 w-40 opacity-5 rotate-12",
+              isTampered ? "text-red-900" : "text-(--color-primary)"
+            )} />
           </div>
 
-          {/* Certificate details grid */}
-          <div className="rounded-2xl bg-[var(--color-card)] p-6 shadow-[var(--shadow-card)] transition-all hover:shadow-lg duration-300">
-            <h2 className="mb-4 font-display text-sm font-semibold uppercase tracking-widest text-[var(--color-muted-foreground)]">
-              Certificate Details
-            </h2>
-            <dl className="grid grid-cols-2 gap-x-6 gap-y-5 sm:grid-cols-3">
-              {[
-                { label: "Category", value: certificate.category || "N/A" },
-                { label: "Artisan", value: certificate.artisan_name || "N/A" },
-                { label: "Materials", value: certificate.materials || "N/A" },
-                { label: "Creator", value: certificate.creator ? `${String(certificate.creator).slice(0, 6)}…${String(certificate.creator).slice(-4)}` : "Unknown" },
-                { label: "Object ID", value: id?.slice(0, 10) + "…" },
-                { label: "Network", value: "SUI Testnet" },
-              ].map(({ label, value }, idx) => (
-                <div key={label} className="animate-in fade-in duration-500" style={{ animationDelay: `${idx * 100}ms` }}>
-                  <dt className="mb-0.5 text-xs font-medium text-[var(--color-muted-foreground)]">
-                    {label}
-                  </dt>
-                  <dd className="truncate text-sm font-semibold text-[var(--color-foreground)]" title={String(value)}>
-                    {String(value)}
-                  </dd>
-                </div>
-              ))}
-            </dl>
-
-            {certificate.note && (
-              <div className="mt-5 border-t border-[var(--color-border)] pt-4">
-                <dt className="mb-1 text-xs font-medium text-[var(--color-muted-foreground)]">
-                  Provenance Note
-                </dt>
-                <dd className="text-sm leading-relaxed text-[var(--color-foreground)] italic">
-                  "{certificate.note}"
-                </dd>
-              </div>
-            )}
-          </div>
-
-          {/* Owner action modals (inline) */}
-          {activeAction === "event" && (
-            <div className="rounded-2xl glass-card p-6 border border-emerald-500/30 relative animate-in slide-in-from-bottom-6 duration-500">
-              <button
-                onClick={() => setActiveAction("none")}
-                className="absolute top-4 right-4 text-[var(--color-muted-foreground)] hover:text-red-500 transition-colors"
-              >
-                <X className="h-5 w-5" />
-              </button>
-              <h3 className="font-semibold text-lg flex items-center gap-2 mb-4 text-[var(--color-foreground)]">
-                <PlusCircle className="h-5 w-5 text-emerald-600" /> Add Provenance Update
-              </h3>
-              <form onSubmit={handleAddEvent} className="space-y-4">
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  <div>
-                    <label className="mb-1.5 block text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-                      Event Type
-                    </label>
-                    <input
-                      required
-                      value={eventData.type}
-                      onChange={(e) => setEventData({ ...eventData, type: e.target.value })}
-                      className={inputBase}
-                      placeholder="e.g. Certified"
-                    />
-                  </div>
-                  <div>
-                    <label className="mb-1.5 block text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-                      Location
-                    </label>
-                    <input
-                      required
-                      value={eventData.location}
-                      onChange={(e) => setEventData({ ...eventData, location: e.target.value })}
-                      className={inputBase}
-                      placeholder="e.g. Paris Workshop"
-                    />
-                  </div>
-                </div>
-                <div>
-                  <label className="mb-1.5 block text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-                    Note (Optional)
-                  </label>
-                  <input
-                    value={eventData.note}
-                    onChange={(e) => setEventData({ ...eventData, note: e.target.value })}
-                    className={inputBase}
-                    placeholder="e.g. Inspected and certified by curator"
-                  />
-                </div>
-                {actionError && <p className="text-red-500 text-sm animate-pulse">{actionError}</p>}
-                <Button disabled={isSubmitting} variant="primary" type="submit" className="w-full mt-4 group">
-                  {isSubmitting ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : <Activity className="h-4 w-4 mr-2 group-hover:animate-pulse" />}
-                  Publish to Chain
-                </Button>
-              </form>
-            </div>
-          )}
-
-          {activeAction === "transfer" && (
-            <div className="rounded-2xl glass-card p-6 border border-amber-500/30 relative animate-in slide-in-from-bottom-6 duration-500">
-              <button
-                onClick={() => setActiveAction("none")}
-                className="absolute top-4 right-4 text-[var(--color-muted-foreground)] hover:text-red-500 transition-colors"
-              >
-                <X className="h-5 w-5" />
-              </button>
-              <h3 className="font-semibold text-lg flex items-center gap-2 mb-4 text-[var(--color-foreground)]">
-                <Send className="h-5 w-5 text-amber-500" /> Transfer Certificate
-              </h3>
-              <p className="text-sm text-[var(--color-muted-foreground)] mb-4">
-                Transferring this certificate permanently hands over ownership. This action is irreversible on-chain.
+          {/* Artisan Story / Note */}
+          <section className="bg-white rounded-[2.5rem] p-6 sm:p-10 ring-1 ring-slate-100">
+            <h3 className="text-[10px] font-black uppercase tracking-[0.3em] text-muted-foreground mb-6">Artisan Narrative</h3>
+            <div className="relative">
+              <span className="absolute -top-4 -left-4 font-display text-6xl text-emerald-100 select-none">“</span>
+              <p className="relative font-serif text-xl leading-relaxed text-(--color-foreground) italic">
+                {displayNote || "This masterwork was meticulously crafted by hand, following centuries-old tradition and modern innovation. Its provenance reflects a journey of dedication and authenticity."}
               </p>
-              <form onSubmit={handleTransfer} className="space-y-4">
+              <div className="mt-8 flex flex-wrap gap-8">
                 <div>
-                  <label className="mb-1.5 block text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-                    Recipient SUI Address
-                  </label>
-                  <input
-                    required
-                    value={transferData.recipient}
-                    onChange={(e) => setTransferData({ ...transferData, recipient: e.target.value })}
-                    className={inputBase}
-                    placeholder="0x…"
-                  />
+                  <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest mb-1.5">Materials used</p>
+                  <div className="flex items-center gap-2">
+                    < Gem className="h-4 w-4 text-(--color-primary)" />
+                    <p className="text-sm font-bold">{certificate.materials}</p>
+                  </div>
                 </div>
-                {actionError && <p className="text-red-500 text-sm animate-pulse">{actionError}</p>}
-                <Button
-                  disabled={isSubmitting}
-                  variant="primary"
-                  type="submit"
-                  className="w-full mt-4 bg-amber-600 hover:bg-amber-700 text-white"
-                >
-                  {isSubmitting ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : <Send className="h-4 w-4 mr-2" />}
-                  Transfer On-Chain
-                </Button>
-              </form>
+                <div>
+                  <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest mb-1.5">Date of Creation</p>
+                  <div className="flex items-center gap-2">
+                    < Calendar className="h-4 w-4 text-(--color-primary)" />
+                    <p className="text-sm font-bold">{formatDate(certificate.created_at)}</p>
+                  </div>
+                </div>
+              </div>
             </div>
+          </section>
+
+          {/* Management Actions (Owner Only) */}
+          {isOwner && (
+            <section className="rounded-[2.5rem] bg-white p-8 ring-1 ring-slate-100 animate-in slide-in-from-bottom-4 duration-700">
+              <div className="flex items-center justify-between mb-8">
+                <h3 className="text-[10px] font-black uppercase tracking-[0.3em] text-(--color-primary)">Owner Management Suite</h3>
+                <span className="px-3 py-1 bg-emerald-50 text-(--color-primary) text-[10px] font-bold rounded-full ring-1 ring-emerald-100">YOU OWN THIS ITEM</span>
+              </div>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <Button onClick={() => setActiveAction("event")} className="py-8 rounded-3xl bg-white border-2 border-slate-100 hover:border-(--color-primary)/30 text-(--color-foreground) shadow-sm group">
+                  <PlusCircle className="mr-3 h-5 w-5 text-(--color-primary) transition-transform group-hover:rotate-90" />
+                  Record Milestone
+                </Button>
+                <Button onClick={() => setActiveAction("transfer")} className="py-8 rounded-3xl bg-white border-2 border-slate-100 hover:border-amber-400/30 text-(--color-foreground) shadow-sm group">
+                  <Send className="mr-3 h-5 w-5 text-amber-500 transition-transform group-hover:translate-x-1" />
+                  Handoff Ownership
+                </Button>
+              </div>
+
+              {/* Action Modals - Inline Redesigned */}
+              {activeAction !== "none" && (
+                <div className="mt-8 pt-8 border-t border-slate-100 animate-in fade-in duration-500">
+                  {activeAction === "event" && (
+                    <form onSubmit={handleAddEvent} className="space-y-6">
+                      <div className="flex items-center justify-between">
+                        <h4 className="font-bold flex items-center gap-2"><PlusCircle className="h-4 w-4 text-(--color-primary)" /> Add Provenance Milestone</h4>
+                        <Button variant="ghost" size="sm" onClick={() => setActiveAction("none")} className="h-8 w-8 p-0 rounded-full"><X className="h-4 w-4" /></Button>
+                      </div>
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <input required value={eventData.type} onChange={(e) => setEventData({ ...eventData, type: e.target.value })} className={inputBase} placeholder="Event e.g. Exhibition" />
+                        <input required value={eventData.location} onChange={(e) => setEventData({ ...eventData, location: e.target.value })} className={inputBase} placeholder="Location" />
+                      </div>
+                      <textarea value={eventData.note} onChange={(e) => setEventData({ ...eventData, note: e.target.value })} className={cn(inputBase, "h-24 py-4")} placeholder="Describe this milestone for future owners..." />
+                      <Button disabled={isSubmitting} type="submit" className="w-full py-6 rounded-2xl bg-(--color-primary) hover:bg-emerald-950 text-white shadow-lg shadow-emerald-200">
+                        {isSubmitting ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Activity className="mr-2 h-4 w-4" />}
+                        Anchor Milestone to Chain
+                      </Button>
+                    </form>
+                  )}
+                  {activeAction === "transfer" && (
+                    <form onSubmit={handleTransfer} className="space-y-6">
+                      <div className="flex items-center justify-between">
+                        <h4 className="font-bold text-amber-900 flex items-center gap-2"><Send className="h-4 w-4 text-amber-600" /> Transfer Proof of Ownership</h4>
+                        <Button variant="ghost" size="sm" onClick={() => setActiveAction("none")} className="h-8 w-8 p-0 rounded-full"><X className="h-4 w-4" /></Button>
+                      </div>
+                      <p className="text-sm text-amber-800/80 bg-amber-50 p-4 rounded-xl border border-amber-100 font-medium">
+                        Warning: This action permanently transfers the digital certificate. Ensure the recipient address is correct. This is irreversible.
+                      </p>
+                      <input required value={transferData.recipient} onChange={(e) => setTransferData({ ...transferData, recipient: e.target.value })} className={inputBase} placeholder="Recipient SUI Address (0x...)" />
+                      <Button disabled={isSubmitting} type="submit" className="w-full py-6 rounded-2xl bg-amber-600 hover:bg-amber-700 text-white shadow-lg shadow-amber-200">
+                        {isSubmitting ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Send className="mr-2 h-4 w-4" />}
+                        Commit Official Transfer
+                      </Button>
+                    </form>
+                  )}
+                </div>
+              )}
+            </section>
           )}
 
-          {/* Provenance Timeline */}
-          <div className="rounded-2xl bg-[var(--color-card)] p-6 shadow-[var(--shadow-card)]">
-            <div className="mb-8 flex justify-between items-center">
-              <h2 className="font-display text-sm font-semibold uppercase tracking-widest text-[var(--color-muted-foreground)]">
-                Provenance Timeline
-              </h2>
-            </div>
+          {/* Provenance Timeline Redesigned */}
+          <section className="bg-white rounded-[2.5rem] p-10 ring-1 ring-slate-100">
+            <h3 className="text-[10px] font-black uppercase tracking-[0.3em] text-muted-foreground mb-10">Provenance Lifecycle</h3>
 
             {events.length > 0 ? (
-              <ol className="space-y-0">
+              <div className="relative space-y-0 before:absolute before:left-6 before:top-2 before:bottom-2 before:w-[2px] before:bg-slate-50">
                 {events.map(({ icon: Icon, label, location, date, note, isFirst }: any, i: number) => (
-                  <li key={i} className="flex gap-4 animate-in fade-in slide-in-from-bottom-2 duration-500" style={{ animationDelay: `${i * 150}ms` }}>
-                    <div className="flex flex-col items-center">
-                      <span
-                        className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-full shadow-sm transition-transform hover:scale-110 ${isFirst
-                          ? "bg-emerald-600 text-white"
-                          : "bg-[var(--color-surface-low)] text-[var(--color-muted-foreground)] border border-emerald-100"
-                          }`}
-                      >
-                        <Icon className="h-4 w-4" />
-                      </span>
-                      {i < events.length - 1 && (
-                        <span className="mt-1 h-full w-0.5 bg-gradient-to-b from-emerald-100 to-transparent" />
-                      )}
+                  <div key={i} className="relative pl-16 pb-12 animate-in fade-in slide-in-from-left-4 duration-700" style={{ animationDelay: `${i * 150}ms` }}>
+                    <div className={cn(
+                      "absolute left-0 p-3 rounded-2xl shadow-sm z-10 transition-transform duration-500 hover:scale-110",
+                      isFirst ? "bg-(--color-primary) text-white" : "bg-white ring-1 ring-slate-100 text-muted-foreground"
+                    )}>
+                      <Icon className="h-6 w-6" />
                     </div>
-                    <div className="pb-8">
-                      <p className="font-bold text-[var(--color-foreground)]">{label}</p>
-                      <div className="mt-1 flex flex-wrap gap-x-4 gap-y-1 text-xs text-[var(--color-muted-foreground)] font-medium">
-                        <span className="flex items-center gap-1">
-                          <MapPin className="h-3 w-3 text-emerald-500/70" />
-                          {location}
-                        </span>
-                        <span className="flex items-center gap-1">
-                          <Calendar className="h-3 w-3 text-emerald-500/70" />
-                          {date}
-                        </span>
+                    <div className="space-y-2">
+                      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                        <h4 className="font-display text-lg font-bold text-(--color-foreground)">{label}</h4>
+                        <span className="text-[10px] font-black text-muted-foreground uppercase tracking-widest bg-slate-50 px-3 py-1 rounded-full">{date}</span>
+                      </div>
+                      <div className="flex items-center gap-4 text-xs font-bold text-(--color-primary)/60 uppercase tracking-widest">
+                        <span className="flex items-center gap-1.5"><MapPin className="h-3 w-3" /> {location}</span>
                       </div>
                       {note && (
-                        <p className="mt-3 max-w-sm rounded-xl bg-emerald-50/30 p-3 text-sm text-[var(--color-muted-foreground)] leading-relaxed border border-emerald-100/50">
+                        <p className="mt-4 p-5 rounded-2xl bg-slate-50/50 text-sm text-muted-foreground leading-relaxed border border-slate-100/50">
                           {note}
                         </p>
                       )}
                     </div>
-                  </li>
+                  </div>
                 ))}
-              </ol>
+              </div>
             ) : (
-              <p className="text-sm text-[var(--color-muted-foreground)] h-20 flex items-center justify-center">No events recorded yet.</p>
-            )}
-          </div>
-        </div>
-
-        {/* ── Right: sidebar ── */}
-        <div className="space-y-4 lg:row-start-1 animate-in fade-in slide-in-from-bottom-6 duration-700 delay-200">
-
-          {/* Trust / Tampered badge */}
-          <div
-            className={`rounded-2xl p-6 ring-2 transition-all duration-500 ${isTampered
-              ? "bg-red-50/50 ring-red-100 backdrop-blur-sm"
-              : "bg-emerald-50/50 ring-emerald-100 backdrop-blur-sm"
-              }`}
-          >
-            <div className="flex items-center gap-4">
-              <div
-                className={`flex h-12 w-12 items-center justify-center rounded-2xl shadow-sm transition-transform duration-500 hover:rotate-6 ${isTampered ? "bg-red-100 text-red-600" : "bg-emerald-100 text-emerald-600"
-                  }`}
-              >
-                {hashStatus === "pending" ? (
-                  <Loader2 className="h-6 w-6 animate-spin" />
-                ) : isTampered ? (
-                  <AlertTriangle className="h-6 w-6" />
-                ) : (
-                  <ShieldCheck className="h-6 w-6" />
-                )}
-              </div>
-              <div>
-                <p className={`text-lg font-bold ${isTampered ? "text-red-900" : "text-emerald-900"}`}>
-                  {hashStatus === "pending" ? "Verifying..." : isTampered ? "Tampered" : "Verified"}
-                </p>
-                <p className={`text-xs font-medium ${isTampered ? "text-red-700" : "text-emerald-700/80"}`}>
-                  {isTampered
-                    ? "Security warning: data mismatch"
-                    : "Trust-authenticated on SUI"}
-                </p>
-              </div>
-            </div>
-
-            {isOwner && (
-              <div className="mt-6 pt-5 border-t border-emerald-200/50">
-                <p className="text-[10px] font-bold uppercase tracking-widest text-emerald-800/60 mb-4">
-                  Management Tools
-                </p>
-                <div className="flex flex-col gap-3">
-                  <Button
-                    variant="primary"
-                    onClick={() => setActiveAction("event")}
-                    className="w-full bg-emerald-600 hover:bg-emerald-700 text-white shadow-sm ring-1 ring-emerald-400 group"
-                  >
-                    <PlusCircle className="h-4 w-4 mr-2 transition-transform group-hover:rotate-90" /> Add Record
-                  </Button>
-                  <Button
-                    variant="secondary"
-                    onClick={() => setActiveAction("transfer")}
-                    className="w-full bg-white text-emerald-900 border-emerald-200 hover:bg-emerald-50 shadow-sm"
-                  >
-                    <Send className="h-4 w-4 mr-2" /> Handoff Item
-                  </Button>
-                </div>
+              <div className="py-12 flex flex-col items-center justify-center opacity-30">
+                < Gem className="h-12 w-12 mb-4" />
+                <p className="font-bold uppercase tracking-widest text-xs">No records found</p>
               </div>
             )}
-          </div>
-
-          {/* QR Code */}
-          <div className="flex flex-col items-center gap-4 rounded-2xl bg-[var(--color-card)] p-6 shadow-[var(--shadow-card)] transition-all hover:scale-[1.02] duration-300">
-            <div className="bg-white p-3 rounded-2xl shadow-inner ring-1 ring-emerald-50">
-              <QRCode
-                value={window.location.href}
-                size={180}
-                level="H"
-                fgColor="#131b2e"
-              />
-            </div>
-            <p className="text-center text-[10px] font-bold text-[var(--color-muted-foreground)] uppercase tracking-[0.2em]">
-              Sui-Anchored Identity
-            </p>
-          </div>
-
-          {/* Share buttons */}
-          <div className="grid grid-cols-2 gap-3">
-            <Button
-              id="item-action-share"
-              variant="secondary"
-              className="w-full py-6 flex-col gap-1 text-[10px] font-bold"
-              onClick={() => { handleCopyObjectIdToClipBoard(id ?? "") }}
-            >
-              <Share2 className="h-4 w-4" />
-              {copied ? "Copied!" : "Copy"}
-            </Button>
-
-            <Button
-              id="item-action-copy"
-              variant="secondary"
-              className="w-full py-6 flex-col gap-1 text-[10px] font-bold"
-              onClick={handleCopy}
-            >
-              <Copy className="h-4 w-4" />
-              LINK
-            </Button>
-          </div>
+          </section>
         </div>
       </div>
 
-      {/* ── Security Audit Panel (Dev/Test Only) ── */}
-      <div className="mt-12 rounded-3xl overflow-hidden border border-red-200 bg-red-50/20 backdrop-blur-sm animate-in fade-in slide-in-from-bottom-8 duration-1000 delay-500">
-        <div className="p-1 px-4 bg-red-500 flex justify-between items-center">
-          <span className="text-[10px] font-black text-white uppercase tracking-[0.3em]">Security Audit Lab</span>
-          <button
-            onClick={() => setShowAuditPanel(!showAuditPanel)}
-            className="text-white hover:bg-white/10 p-1 rounded transition-colors"
-          >
+      {/* ── Security Audit Panel (Remains for Testing) ── */}
+      <div className="mt-16 rounded-[2rem] overflow-hidden border border-red-200 bg-red-50/20 backdrop-blur-sm animate-in fade-in duration-1000 delay-500">
+        <div className="p-2 px-6 bg-red-500 flex justify-between items-center">
+          <span className="text-[9px] font-black text-white uppercase tracking-[0.4em]">Cryptographic Integrity Laboratory</span>
+          <button onClick={() => setShowAuditPanel(!showAuditPanel)} className="text-white hover:bg-white/10 p-1.5 rounded-full transition-colors">
             {showAuditPanel ? <EyeOff className="h-3 w-3" /> : <Eye className="h-3 w-3" />}
           </button>
         </div>
-
         {showAuditPanel && (
-          <div className="p-6 grid gap-6 md:grid-cols-3">
-            <div className="space-y-2">
-              <h4 className="text-xs font-bold text-red-900 uppercase tracking-wider flex items-center gap-2">
-                <ShieldAlert className="h-4 w-4" /> Simulation Triggers
+          <div className="p-8 grid gap-8 md:grid-cols-3 items-center">
+            <div className="space-y-3">
+              <h4 className="text-xs font-black text-red-900 uppercase tracking-widest flex items-center gap-2">
+                <ShieldAlert className="h-4 w-4" /> Hardened Simulators
               </h4>
-              <p className="text-[11px] text-red-700/70 leading-relaxed">
-                Manually induce data corruption to test the frontend's re-verification engine.
+              <p className="text-[11px] text-red-700/80 leading-relaxed font-medium">
+                Induce metadata drift or hash corruption to validate the re-verification engine's response speed and UI integrity.
               </p>
             </div>
-
             <div className="flex flex-col gap-3">
-              <Button
-                variant="secondary"
-                size="sm"
-                onClick={() => setIsSimulatingTamper(!isSimulatingTamper)}
-                className={cn(
-                  "justify-start text-xs font-bold transition-all",
-                  isSimulatingTamper ? "bg-red-100 text-red-700 border-red-300" : "bg-white"
-                )}
-              >
-                <div className={cn("h-2 w-2 rounded-full mr-2", isSimulatingTamper ? "bg-red-500 animate-pulse" : "bg-gray-300")} />
-                {isSimulatingTamper ? "Stop Data Corruption" : "Corrupt Metadata"}
+              <Button variant="secondary" size="sm" onClick={() => setIsSimulatingTamper(!isSimulatingTamper)} className={cn("justify-start h-12 rounded-xl text-[10px] font-black uppercase tracking-widest", isSimulatingTamper ? "bg-red-100 text-red-700" : "bg-white shadow-sm")}>
+                <div className={cn("h-2 w-2 rounded-full mr-3", isSimulatingTamper ? "bg-red-500 animate-pulse" : "bg-gray-300")} />
+                {isSimulatingTamper ? "Stop Data Corruption" : "Corrupt Master Records"}
               </Button>
-
-              <Button
-                variant="secondary"
-                size="sm"
-                onClick={() => setIsSimulatingAnchorTamper(!isSimulatingAnchorTamper)}
-                className={cn(
-                  "justify-start text-xs font-bold transition-all",
-                  isSimulatingAnchorTamper ? "bg-red-100 text-red-700 border-red-300" : "bg-white"
-                )}
-              >
-                <div className={cn("h-2 w-2 rounded-full mr-2", isSimulatingAnchorTamper ? "bg-red-500 animate-pulse" : "bg-gray-300")} />
-                {isSimulatingAnchorTamper ? "Release Hash Lock" : "Corrupt Hash Anchor"}
+              <Button variant="secondary" size="sm" onClick={() => setIsSimulatingAnchorTamper(!isSimulatingAnchorTamper)} className={cn("justify-start h-12 rounded-xl text-[10px] font-black uppercase tracking-widest", isSimulatingAnchorTamper ? "bg-red-100 text-red-700" : "bg-white shadow-sm")}>
+                <div className={cn("h-2 w-2 rounded-full mr-3", isSimulatingAnchorTamper ? "bg-red-500 animate-pulse" : "bg-gray-300")} />
+                {isSimulatingAnchorTamper ? "Release Hash Lock" : "Corrupt Chain Anchor"}
               </Button>
             </div>
-
-            <div className="flex flex-col justify-center">
-              <Button
-                variant="secondary"
-                size="sm"
-                onClick={() => {
-                  setIsSimulatingTamper(false);
-                  setIsSimulatingAnchorTamper(false);
-                }}
-                disabled={!isSimulatingTamper && !isSimulatingAnchorTamper}
-                className="bg-white text-xs font-bold"
-              >
-                <RefreshCw className="h-3 w-3 mr-2" />
-                Restore Security State
-              </Button>
-            </div>
+            <Button variant="secondary" size="lg" onClick={() => { setIsSimulatingTamper(false); setIsSimulatingAnchorTamper(false); }} disabled={!isSimulatingTamper && !isSimulatingAnchorTamper} className="h-20 bg-white rounded-2xl shadow-sm text-xs font-black uppercase tracking-widest text-red-900 border-2 border-slate-100 hover:border-red-200">
+              <RefreshCw className="h-4 w-4 mr-3" /> Re-sync Integrity State
+            </Button>
           </div>
         )}
       </div>
     </PageContainer>
-
   );
 }

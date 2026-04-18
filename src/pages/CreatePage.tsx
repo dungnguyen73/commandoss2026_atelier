@@ -65,8 +65,15 @@ const FIELDS: FieldProps[] = [
     name: "note",
     label: "Certificate Note / Story",
     as: "textarea",
-    placeholder: "Optional — describe the piece, technique, or provenance story…",
-    hint: "This note is stored on-chain as part of the certificate.",
+    placeholder: "Describe the piece, technique, or provenance story…",
+    hint: "This story is stored on-chain as part of the certificate.",
+  },
+  {
+    id: "image-url",
+    name: "imageUrl",
+    label: "Product Image URL",
+    placeholder: "https://images.unsplash.com/photo-...",
+    hint: "Optional — provide a direct link to the product image for a premium display.",
   },
 ];
 
@@ -90,6 +97,7 @@ export default function CreatePage() {
     location: "",
     materials: "",
     note: "",
+    imageUrl: "",
   });
 
   const handleInputChange = (
@@ -126,6 +134,12 @@ export default function CreatePage() {
       }
 
       const tx = new Transaction();
+      
+      // Pack Image URL into note if present: "IMG:url::NOTE:text"
+      const packedNote = formData.imageUrl 
+        ? `IMG:${formData.imageUrl.trim()}::NOTE:${(formData.note || "N/A").trim()}`
+        : (formData.note || "N/A").trim();
+
       tx.moveCall({
         target: `${ATELIER_PACKAGE_ID}::atelier::create_certificate`,
         arguments: [
@@ -135,7 +149,7 @@ export default function CreatePage() {
           tx.pure.string(formData.artisanName),
           tx.pure.string(formData.location),
           tx.pure.string(formData.materials),
-          tx.pure.string(formData.note || "N/A"),
+          tx.pure.string(packedNote),
           tx.pure.string(certHash),
           tx.object("0x6"), // clock
         ],

@@ -1,64 +1,91 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Outfit:wght@400;500;600;700;800&display=swap');
 @import "tailwindcss";
+
+/* ─── Typography Setup ────────────────────────────────────────────────── */
 
 /* ─── ChainPassport Design Tokens ─────────────────────────────────────── */
 @theme {
-  /* Surface hierarchy (DESIGN.md §3) */
-  --color-background:            #faf8ff;
-  --color-foreground:            #131b2e;
-  --color-surface-low:           #f2f3ff;
+  /* Surface hierarchy (Botanical Charcoal Theme) */
+  --color-background:            #fcfdfa; /* Slightly greenish tint for organic feel */
+  --color-foreground:            #1a1f18; /* Deep forest charcoal */
+  --color-surface-low:           #f0f4ee;
   --color-surface-lowest:        #ffffff;
-  --color-surface-bright:        #faf8ff;
+  --color-surface-bright:        #fcfdfa;
 
   /* Card */
   --color-card:                  #ffffff;
-  --color-card-foreground:       #131b2e;
+  --color-card-foreground:       #1a1f18;
 
-  /* Primary – trust green */
-  --color-primary:               #006e2f;
-  --color-primary-container:     #22c55e;
+  /* Primary – Trust Botanical Green */
+  --color-primary:               #0a4d2c;
+  --color-primary-container:     #d7f5e5;
   --color-primary-foreground:    #ffffff;
 
-  /* Secondary green-shade */
-  --color-secondary:             #2f6a3c;
+  /* Secondary – Sage/Earthy */
+  --color-secondary:             #52634f;
   --color-secondary-foreground:  #ffffff;
 
   /* Muted / neutral */
-  --color-muted:                 #f2f3ff;
-  --color-muted-foreground:      rgba(19, 27, 46, 0.55);
+  --color-muted:                 #f0f4ee;
+  --color-muted-foreground:      #606b5c;
 
-  /* Accent (same as surface-low for calm tonal shift) */
-  --color-accent:                #f2f3ff;
-  --color-accent-foreground:     #131b2e;
+  /* Outline variant */
+  --color-outline-variant:       rgba(26, 31, 24, 0.08);
+  --color-border:                rgba(26, 31, 24, 0.08);
+  --color-input:                 #f0f4ee;
+  --color-ring:                  #0a4d2c;
 
-  /* Outline variant – hairline only */
-  --color-outline-variant:       rgba(19, 27, 46, 0.12);
-  --color-border:                rgba(19, 27, 46, 0.12);
-  --color-input:                 #f2f3ff;
-  --color-ring:                  #006e2f;
+  /* Status colors - Sophisticated Tones */
+  --color-verified:              #0a4d2c;
+  --color-in-transit:            #1d4ed8;
+  --color-created:               #4b5563;
+  --color-pending:               #b45309;
+  --color-flagged:               #be123c;
 
-  /* Status colors */
-  --color-verified:              #006e2f;
-  --color-in-transit:            #0369a1;
-  --color-created:               #6b7280;
-  --color-pending:               #d97706;
-  --color-flagged:               #dc2626;
-
-  /* Destructive */
-  --color-destructive:           #dc2626;
-  --color-destructive-foreground:#ffffff;
-
-  /* Radius scale */
-  --radius-sm:   0.25rem;
-  --radius-md:   0.5rem;
-  --radius-lg:   0.75rem;
-  --radius-xl:   1rem;
-  --radius-2xl:  1.5rem;
+  /* Radius scale - More rounded for premium feel */
+  --radius-sm:   0.4rem;
+  --radius-md:   0.6rem;
+  --radius-lg:   1rem;
+  --radius-xl:   1.5rem;
+  --radius-2xl:  2rem;
   --radius-full: 9999px;
 
-  /* Shadow token (DESIGN.md §5) */
-  --shadow-card:    0px 20px 40px rgba(19, 27, 46, 0.06);
-  --shadow-sm:      0px 2px 8px  rgba(19, 27, 46, 0.06);
-  --shadow-nav:     0px 1px 0px  rgba(19, 27, 46, 0.07);
+  /* High-end Shadows */
+  --shadow-card:    0px 24px 48px -12px rgba(10, 77, 44, 0.08);
+  --shadow-sm:      0px 4px 12px rgba(10, 77, 44, 0.04);
+  --shadow-nav:     0px 1px 0px rgba(10, 77, 44, 0.05);
+  --shadow-luxury:  0 20px 50px -12px rgba(10, 77, 44, 0.12);
+}
+
+@keyframes silkFlow {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+
+@keyframes dashFloat {
+  0% { transform: translateY(0px) rotate(0deg); }
+  50% { transform: translateY(-20px) rotate(2deg); }
+  100% { transform: translateY(0px) rotate(0deg); }
+}
+
+@keyframes luxuryPulse {
+  0%, 100% { opacity: 0.3; transform: scale(1); }
+  50% { opacity: 0.6; transform: scale(1.1); }
+}
+
+.luxury-mesh {
+  background: linear-gradient(-45deg, #f0f4f2, #e8edea, #f8faf9, #ecf2ee);
+  background-size: 400% 400%;
+  animation: silkFlow 15s ease infinite;
+}
+
+.animate-float {
+  animation: dashFloat 8s ease-in-out infinite;
+}
+
+.animate-pulse-luxury {
+  animation: luxuryPulse 4s ease-in-out infinite;
 }
 
 /* ─── Global reset ─────────────────────────────────────────────────────── */
@@ -79,10 +106,11 @@ body {
   -moz-osx-font-smoothing: grayscale;
 }
 
-/* Display / heading text uses Manrope */
+/* Display / heading text uses Outfit */
 h1, h2, h3, h4, h5, h6,
 .font-display {
-  font-family: "Manrope", ui-sans-serif, system-ui, sans-serif;
+  font-family: "Outfit", ui-sans-serif, system-ui, sans-serif;
+  letter-spacing: -0.02em;
 }
 
 /* ─── Primary gradient utility ─────────────────────────────────────────── */

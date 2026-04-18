@@ -16,13 +16,13 @@ export interface BadgeProps extends HTMLAttributes<HTMLSpanElement> {
 
 const variantStyles: Record<BadgeVariant, string> = {
   created:
-    "bg-slate-100 text-slate-600 ring-1 ring-slate-200",
+    "bg-slate-100/80 text-slate-600 ring-1 ring-slate-200/50 backdrop-blur-sm",
   certified:
-    "bg-sky-50 text-sky-800 ring-1 ring-sky-200",
+    "bg-sky-50/80 text-sky-800 ring-1 ring-sky-200/50 backdrop-blur-sm",
   transferred:
-    "bg-amber-50 text-amber-800 ring-1 ring-amber-200",
+    "bg-amber-50/80 text-amber-800 ring-1 ring-amber-200/50 backdrop-blur-sm",
   verified:
-    "bg-emerald-50 text-emerald-800 ring-1 ring-emerald-200",
+    "bg-[var(--color-primary-container)]/30 text-[var(--color-primary)] ring-1 ring-[var(--color-primary)]/20 backdrop-blur-sm",
   tampered:
     "bg-red-50 text-red-700 ring-1 ring-red-200",
   closed:

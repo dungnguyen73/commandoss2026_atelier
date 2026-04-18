@@ -6,10 +6,18 @@ import { Button } from "../components/ui/button";
 import { EmptyState } from "../components/shared/EmptyState";
 import { BatchCard } from "../components/shared/BatchCard";
 import { cn } from "../lib/utils";
-import { useCurrentAccount } from "@mysten/dapp-kit-react";
+import { useCurrentAccount, useDAppKit, CurrentAccountSigner } from "@mysten/dapp-kit-react";
 import { useOwnedCertificates } from "../hooks/useOwnedCertificates";
+import { useCreatedCertificates } from "../hooks/useCreatedCertificates";
+import { useRecentCertificates } from "../hooks/useRecentCertificates";
+import { useArtisanProfile } from "../hooks/useArtisanProfile";
+import { Transaction } from "@mysten/sui/transactions";
+import { ATELIER_PACKAGE_ID } from "../config/network";
 import { useStore } from "@nanostores/react";
 import { $roleStore, ROLES } from "../store/roleStore";
+import { useState, useMemo } from "react";
+
+
 
 function MetricCard({ title, value, icon: Icon, description }: { title: string; value: string | number; icon: any; description: string }) {
   return (
@@ -31,15 +39,45 @@ function MetricCard({ title, value, icon: Icon, description }: { title: string; 
 export default function DashboardPage() {
   const navigate = useNavigate();
   const account = useCurrentAccount();
-  const { certificates, isLoading, error } = useOwnedCertificates(account?.address);
+  const dAppKit = useDAppKit();
+  const signer = useMemo(() => new CurrentAccountSigner(dAppKit as any), [dAppKit]);
+
+  
+  const { certificates: ownedCertificates, isLoading: isLoadingOwned, error: errorOwned } = useOwnedCertificates(account?.address);
+  const { certificates: createdCertificates, isLoading: isLoadingCreated, error: errorCreated } = useCreatedCertificates(account?.address);
+  const { certificates: recentCertificates } = useRecentCertificates();
+  const { profile, isLoading: isLoadingProfile, refetch: refetchProfile } = useArtisanProfile(account?.address);
+  
+  const [isSettingUp, setIsSettingUp] = useState(false);
   const activeRole = useStore($roleStore);
 
-  const artisanCertificates = certificates.filter(
-    (c: any) => c.creator === account?.address
-  );
-  const ownerCertificates = certificates.filter(
+  const isLoading = activeRole === "Artisan" ? isLoadingCreated : isLoadingOwned;
+  const error = activeRole === "Artisan" ? errorCreated : errorOwned;
+
+  // For Owners, we show items they own but did NOT create
+  const collectedCertificates = ownedCertificates.filter(
+
     (c: any) => c.creator !== account?.address
   );
+
+  const handleCreateProfile = async () => {
+    if (!signer) return;
+    setIsSettingUp(true);
+    try {
+      const tx = new Transaction();
+      tx.moveCall({
+        target: `${ATELIER_PACKAGE_ID}::atelier::create_profile`,
+        arguments: [],
+      });
+      await signer.signAndExecuteTransaction({ transaction: tx });
+      await refetchProfile();
+    } catch (err) {
+      console.error("Profile setup failed:", err);
+    } finally {
+      setIsSettingUp(false);
+    }
+  };
+
 
   useEffect(() => {
     if (account && activeRole === "Buyer") {
@@ -71,6 +109,34 @@ export default function DashboardPage() {
           </Button>
         )}
       </div>
+      
+      {/* ── Profile Setup Banner ── */}
+      {activeRole === "Artisan" && account && !isLoadingProfile && !profile && (
+        <div className="mb-8 rounded-2xl bg-amber-50 border border-amber-200 p-6 animate-in fade-in slide-in-from-top-4 duration-700">
+          <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
+            <div className="flex items-start gap-4">
+              <div className="rounded-xl bg-amber-100 p-2.5 text-amber-600">
+                <Award className="h-6 w-6" />
+              </div>
+              <div>
+                <h3 className="font-bold text-amber-900">Setup Artisan Profile</h3>
+                <p className="text-sm text-amber-700 mt-1">
+                  Initialize your on-chain registry to securely track all your creations, even after they're sold.
+                </p>
+              </div>
+            </div>
+            <Button 
+              variant="outline" 
+              onClick={handleCreateProfile}
+              disabled={isSettingUp}
+              className="bg-white border-amber-200 hover:bg-amber-100 text-amber-700 whitespace-nowrap"
+            >
+              {isSettingUp ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : "Initialize Profile"}
+            </Button>
+          </div>
+        </div>
+      )}
+
 
       {/* ── Metrics Grid (Conditional) ── */}
       {account && !isLoading && !error && (
@@ -79,7 +145,7 @@ export default function DashboardPage() {
             <>
               <MetricCard 
                 title="Total Minted" 
-                value={artisanCertificates.length} 
+                value={createdCertificates.length} 
                 icon={Gem}
                 description="Unique certifications created"
               />
@@ -95,7 +161,7 @@ export default function DashboardPage() {
             <>
               <MetricCard 
                 title="Collections" 
-                value={ownerCertificates.length} 
+                value={collectedCertificates.length} 
                 icon={Gem}
                 description="Authentic pieces collected"
               />
@@ -140,7 +206,7 @@ export default function DashboardPage() {
         {activeRole === "Artisan" && (
           <div className="space-y-4">
             <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">
-              Your Certificates
+              Your Creation History
             </p>
 
             {!account ? (
@@ -149,18 +215,18 @@ export default function DashboardPage() {
                 title="Wallet Not Connected"
                 description="Please connect your SUI wallet to view your certificates."
               />
-            ) : isLoading ? (
+            ) : isLoadingCreated ? (
               <div className="flex flex-col items-center justify-center py-20 text-muted-foreground">
                 <Loader2 className="h-8 w-8 animate-spin text-(--color-primary)" />
-                <p className="mt-4 font-medium">Fetching your certificates...</p>
+                <p className="mt-4 font-medium">Fetching your creation history...</p>
               </div>
-            ) : error ? (
+            ) : errorCreated ? (
               <EmptyState
                 icon={<Gem className="h-6 w-6 text-red-500" />}
                 title="Error Loading Certificates"
-                description={`Something went wrong while fetching from the SUI network: ${error}`}
+                description={`Something went wrong while fetching from the SUI network: ${errorCreated}`}
               />
-            ) : artisanCertificates.length === 0 ? (
+            ) : createdCertificates.length === 0 ? (
               <EmptyState
                 icon={<Gem className="h-6 w-6" />}
                 title="No certificates found"
@@ -169,7 +235,7 @@ export default function DashboardPage() {
               />
             ) : (
               <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-                {artisanCertificates.map((item: any, idx: number) => (
+                {createdCertificates.map((item: any, idx: number) => (
                   <div key={item.id} className="animate-in fade-in slide-in-from-bottom-4 duration-500" style={{ animationDelay: `${idx * 100}ms` }}>
                     <BatchCard item={item} />
                   </div>
@@ -203,7 +269,7 @@ export default function DashboardPage() {
                 title="Error Loading Certificates"
                 description={`Something went wrong while fetching from the SUI network: ${error}`}
               />
-            ) : ownerCertificates.length === 0 ? (
+            ) : collectedCertificates.length === 0 ? (
               <EmptyState
                 icon={<Gem className="h-6 w-6" />}
                 title="No certificates transferred to you yet"
@@ -211,7 +277,7 @@ export default function DashboardPage() {
               />
             ) : (
               <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-                {ownerCertificates.map((item: any, idx: number) => (
+                {collectedCertificates.map((item: any, idx: number) => (
                   <div key={item.id} className="animate-in fade-in slide-in-from-bottom-4 duration-500" style={{ animationDelay: `${idx * 100}ms` }}>
                     <BatchCard item={item} />
                   </div>
@@ -233,13 +299,31 @@ export default function DashboardPage() {
 
         {/* ── Buyer: browsing certificates ── */}
         {activeRole === "Buyer" && (
-          <EmptyState
-            icon={<Gem className="h-6 w-6" />}
-            title="Discover certified pieces"
-            description="Scan an item's QR code to view its full certificate, provenance history, and transfer record."
-            action={{ label: "Scan QR", onClick: () => navigate("/scan") }}
-          />
+          <div className="space-y-6">
+            <EmptyState
+              icon={<Gem className="h-6 w-6" />}
+              title="Discover certified pieces"
+              description="Scan an item's QR code to view its full certificate, provenance history, and transfer record."
+              action={{ label: "Scan QR", onClick: () => navigate("/scan") }}
+            />
+            
+            {recentCertificates.length > 0 && (
+              <div className="space-y-4 pt-4 border-t border-(--color-outline-variant)">
+                <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">
+                  Recently Scouted
+                </p>
+                <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+                  {recentCertificates.map((item: any, idx: number) => (
+                    <div key={item.id} className="animate-in fade-in slide-in-from-bottom-4 duration-500" style={{ animationDelay: `${idx * 100}ms` }}>
+                      <BatchCard item={item} />
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
         )}
+
       </div>
     </PageContainer>
   );

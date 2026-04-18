@@ -69,6 +69,13 @@ module atelier::atelier {
         created_at: u64,
     }
 
+    /// On-chain registry for an artisan's created works.
+    public struct ArtisanProfile has key, store {
+        id: UID,
+        /// List of certificate IDs minted by this artisan.
+        roots: vector<ID>,
+    }
+
     /// A single provenance update appended to `ArtisanCertificate.history`.
     public struct ProvenanceEvent has store, drop, copy {
         /// Short label for the event (e.g. "Certified", "Sold", "Exhibited").
@@ -115,18 +122,36 @@ module atelier::atelier {
         actor: address,
     }
 
+    /// Emitted when an artisan initializes their profile.
+    public struct ArtisanProfileCreated has copy, drop {
+        profile_id: ID,
+        owner: address,
+    }
+
     // -------------------------------------------------------------------------
     // Entry functions
     // -------------------------------------------------------------------------
 
+    /// Initialize an Artisan Registry (Profile) for the sender.
+    public entry fun create_profile(ctx: &mut TxContext) {
+        let sender = tx_context::sender(ctx);
+        let id = object::new(ctx);
+        let profile_id = object::uid_to_inner(&id);
+        
+        let profile = ArtisanProfile {
+            id,
+            roots: vector::empty<ID>(),
+        };
+        
+        event::emit(ArtisanProfileCreated { profile_id, owner: sender });
+        transfer::public_transfer(profile, sender);
+    }
+
     /// Mint a new `ArtisanCertificate` and transfer it to the calling artisan.
-    ///
-    /// Parameters
-    /// ----------
-    ///   `cert_hash`   — SHA-256 hex string, computed off-chain from the
-    ///                   canonical JSON of the other fields before calling this.
+    /// Also records the certificate ID in the artisan's profile registry.
     #[allow(lint(self_transfer))]
     public fun create_certificate(
+        profile: &mut ArtisanProfile,
         name: String,
         category: String,
         artisan_name: String,
@@ -170,6 +195,9 @@ module atelier::atelier {
         };
 
         event::emit(CertificateCreated { cert_id, creator: sender, name: cert.name });
+
+        // Record the certificate ID in the artisan's registry profile.
+        vector::push_back(&mut profile.roots, cert_id);
 
         transfer::public_transfer(cert, sender);
     }

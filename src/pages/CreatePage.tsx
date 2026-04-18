@@ -9,6 +9,7 @@ import { computeCertificateHash } from "../lib/hash";
 import { useState, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import { addRecentId } from "../store/recentStore";
+import { useArtisanProfile } from "../hooks/useArtisanProfile";
 
 
 interface FieldProps {
@@ -77,6 +78,7 @@ export default function CreatePage() {
   const account = useCurrentAccount();
   const dAppKit = useDAppKit();
   const signer = useMemo(() => new CurrentAccountSigner(dAppKit as any), [dAppKit]);
+  const { profile } = useArtisanProfile(account?.address);
   const navigate = useNavigate();
 
   const [isMinting, setIsMinting] = useState(false);
@@ -120,19 +122,25 @@ export default function CreatePage() {
       const certHash = await computeCertificateHash(formData);
 
       // 2. On-chain validation and minting
+      if (!profile) {
+        throw new Error("Artisan profile not found. Please set it up in the dashboard first.");
+      }
+
       const tx = new Transaction();
-      createCertificate({
-        package: ATELIER_PACKAGE_ID,
+      tx.moveCall({
+        target: `${ATELIER_PACKAGE_ID}::atelier::create_certificate`,
         arguments: [
-          formData.name,
-          formData.category,
-          formData.artisanName,
-          formData.location,
-          formData.materials,
-          formData.note || "N/A",
-          certHash
-        ]
-      })(tx);
+          tx.object(profile.id),
+          tx.pure.string(formData.name),
+          tx.pure.string(formData.category),
+          tx.pure.string(formData.artisanName),
+          tx.pure.string(formData.location),
+          tx.pure.string(formData.materials),
+          tx.pure.string(formData.note || "N/A"),
+          tx.pure.string(certHash),
+          tx.object("0x6"), // clock
+        ],
+      });
 
       const result = await signer.signAndExecuteTransaction({
         transaction: tx,

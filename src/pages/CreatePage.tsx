@@ -5,6 +5,7 @@ import { useCurrentAccount, useDAppKit, CurrentAccountSigner } from "@mysten/dap
 import { Transaction } from "@mysten/sui/transactions";
 import { createCertificate } from "../contracts/atelier/atelier";
 import { ATELIER_PACKAGE_ID } from "../config/network";
+import { computeCertificateHash } from "../lib/hash";
 import { useState, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 
@@ -113,6 +114,10 @@ export default function CreatePage() {
     setError(null);
 
     try {
+      // 1. Off-chain cryptographic hashing
+      const certHash = await computeCertificateHash(formData);
+
+      // 2. On-chain validation and minting
       const tx = new Transaction();
       createCertificate({
         package: ATELIER_PACKAGE_ID,
@@ -123,7 +128,7 @@ export default function CreatePage() {
           formData.location,
           formData.materials,
           formData.note || "N/A",
-          "0x0000000000000000000000000000000000000000000000000000000000000000" // Dummy hash
+          certHash
         ]
       })(tx);
 

@@ -1,5 +1,4 @@
 import { useQuery } from "@tanstack/react-query";
-import { ArtisanCertificate } from "../contracts/atelier/atelier";
 import { ATELIER_PACKAGE_ID } from "../config/network";
 
 export function useOwnedCertificates(address?: string) {

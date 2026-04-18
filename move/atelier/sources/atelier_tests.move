@@ -1,5 +1,4 @@
-// Copyright (c) The Atelier
-// SPDX-License-Identifier: Apache-2.0
+
 
 #[test_only]
 module atelier::atelier_tests {

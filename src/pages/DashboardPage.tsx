@@ -18,8 +18,14 @@ export default function DashboardPage() {
   const account = useCurrentAccount();
   const { certificates, isLoading, error } = useOwnedCertificates(account?.address);
 
-  // Default to "Artisan" when a wallet is connected.
   const [activeRole, setActiveRole] = useState<Role>("Artisan");
+
+  const artisanCertificates = certificates.filter(
+    (c: any) => c.creator === account?.address
+  );
+  const ownerCertificates = certificates.filter(
+    (c: any) => c.creator !== account?.address
+  );
 
   useEffect(() => {
     if (account && activeRole !== "Artisan") {
@@ -99,7 +105,7 @@ export default function DashboardPage() {
               title="Error Loading Certificates"
               description={`Something went wrong while fetching from the SUI network: ${error}`}
             />
-          ) : certificates.length === 0 ? (
+          ) : artisanCertificates.length === 0 ? (
             <EmptyState
               icon={<Gem className="h-6 w-6" />}
               title="No certificates found"
@@ -108,7 +114,7 @@ export default function DashboardPage() {
             />
           ) : (
             <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-              {certificates.map((item: any) => (
+              {artisanCertificates.map((item: any) => (
                 <BatchCard key={item.id} item={item} />
               ))}
             </div>
@@ -118,11 +124,42 @@ export default function DashboardPage() {
 
       {/* ── Owner: transferred certificates ── */}
       {activeRole === "Owner" && (
-        <EmptyState
-          icon={<Gem className="h-6 w-6" />}
-          title="No certificates transferred to you yet"
-          description="Once an artisan transfers a certificate to you, it will appear here for safekeeping and re-transfer."
-        />
+        <div className="space-y-4">
+          <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">
+            Collected Certificates
+          </p>
+
+          {!account ? (
+            <EmptyState
+              icon={<Wallet className="h-6 w-6" />}
+              title="Wallet Not Connected"
+              description="Please connect your SUI wallet to view your certificates."
+            />
+          ) : isLoading ? (
+            <div className="flex flex-col items-center justify-center py-12 text-muted-foreground">
+              <Loader2 className="h-8 w-8 animate-spin" />
+              <p className="mt-4 font-medium">Fetching incoming certificates...</p>
+            </div>
+          ) : error ? (
+            <EmptyState
+              icon={<Gem className="h-6 w-6 text-red-500" />}
+              title="Error Loading Certificates"
+              description={`Something went wrong while fetching from the SUI network: ${error}`}
+            />
+          ) : ownerCertificates.length === 0 ? (
+            <EmptyState
+              icon={<Gem className="h-6 w-6" />}
+              title="No certificates transferred to you yet"
+              description="Once an artisan transfers a certificate to you, it will appear here for safekeeping and re-transfer."
+            />
+          ) : (
+            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+              {ownerCertificates.map((item: any) => (
+                <BatchCard key={item.id} item={item} />
+              ))}
+            </div>
+          )}
+        </div>
       )}
 
       {/* ── Verifier: verification lookup ── */}

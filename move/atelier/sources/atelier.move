@@ -1,5 +1,3 @@
-// Copyright (c) The Atelier
-// SPDX-License-Identifier: Apache-2.0
 
 /// The Atelier — SUI-based artisan authenticity and certificate verification.
 ///

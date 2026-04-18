@@ -20,14 +20,13 @@ import { PageContainer } from "../components/layout/PageContainer";
 import { Button } from "../components/ui/button";
 import { StatusBadge } from "../components/shared/StatusBadge";
 import { useCertificateData } from "../hooks/useCertificateData";
-// Do not replace this import
 import { QRCode } from "react-qr-code";
-
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { useCurrentAccount, useDAppKit, CurrentAccountSigner } from "@mysten/dapp-kit-react";
 import { Transaction } from "@mysten/sui/transactions";
 import { addProvenanceEvent, transferCertificate } from "../contracts/atelier/atelier";
 import { ATELIER_PACKAGE_ID } from "../config/network";
+import { computeCertificateHash } from "../lib/hash";
 import type { CertStatus } from "../components/shared/StatusBadge";
 
 function formatDate(timestamp: string | number) {
@@ -82,6 +81,34 @@ export default function ItemDetailPage() {
   const [activeAction, setActiveAction] = useState<"none" | "event" | "transfer">("none");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [actionError, setActionError] = useState<string | null>(null);
+
+  // Validation state
+  const [hashStatus, setHashStatus] = useState<"pending" | "verified" | "tampered">("pending");
+
+  useEffect(() => {
+    if (!certificate) return;
+    async function verifyHash() {
+      if (!certificate) return;
+      try {
+        const computed = await computeCertificateHash({
+          name: certificate.name || "",
+          category: certificate.category || "",
+          artisanName: certificate.artisan_name || "",
+          location: certificate.location || "",
+          materials: certificate.materials || "",
+          note: certificate.note
+        });
+        if (computed === certificate.cert_hash) {
+          setHashStatus("verified");
+        } else {
+          setHashStatus("tampered");
+        }
+      } catch (err) {
+        setHashStatus("tampered");
+      }
+    }
+    verifyHash();
+  }, [certificate]);
 
   // Form data
   const [eventData, setEventData] = useState({ type: "", location: "", note: "" });
@@ -187,7 +214,7 @@ export default function ItemDetailPage() {
   const inputBase =
     "w-full rounded-xl bg-[var(--color-surface-lowest)] border border-[var(--color-outline-variant)] px-4 py-2.5 text-sm outline-none focus:border-[var(--color-primary)] focus:ring-1 focus:ring-[var(--color-primary)] transition-all";
 
-  const isTampered = displayStatus === "Tampered";
+  const isTampered = hashStatus === "tampered" || displayStatus === "Tampered";
 
   return (
     <PageContainer>
@@ -433,7 +460,9 @@ export default function ItemDetailPage() {
                 className={`flex h-10 w-10 items-center justify-center rounded-xl ${isTampered ? "bg-red-100" : "bg-emerald-100"
                   }`}
               >
-                {isTampered ? (
+                {hashStatus === "pending" ? (
+                  <Loader2 className="h-5 w-5 animate-spin text-[var(--color-primary)]" />
+                ) : isTampered ? (
                   <AlertTriangle className="h-5 w-5 text-red-600" />
                 ) : (
                   <ShieldCheck className="h-5 w-5 text-[var(--color-primary)]" />
@@ -441,12 +470,12 @@ export default function ItemDetailPage() {
               </div>
               <div>
                 <p className={`font-semibold ${isTampered ? "text-red-900" : "text-emerald-900"}`}>
-                  {isTampered ? "Tampered" : "Verified"}
+                  {hashStatus === "pending" ? "Verifying..." : isTampered ? "Tampered" : "Verified"}
                 </p>
                 <p className={`text-xs ${isTampered ? "text-red-700" : "text-emerald-700"}`}>
                   {isTampered
                     ? "Certificate hash mismatch detected"
-                    : "On-chain certificate confirmed"}
+                    : "Zero-Trust certificate confirmed"}
                 </p>
               </div>
             </div>

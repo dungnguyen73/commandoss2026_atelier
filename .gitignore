@@ -42,3 +42,5 @@ Pub.*.toml
 
 
 package_summaries
+
+compute_hash*.py

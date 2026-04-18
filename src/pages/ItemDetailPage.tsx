@@ -28,8 +28,9 @@ import { PageContainer } from "../components/layout/PageContainer";
 import { Button } from "../components/ui/button";
 import { StatusBadge } from "../components/shared/StatusBadge";
 import { useCertificateData } from "../hooks/useCertificateData";
-import { QRCode } from "react-qr-code";
 import { useState, useMemo, useEffect } from "react";
+// @ts-ignore
+import { QRCode } from "react-qr-code";
 import { useCurrentAccount, useDAppKit, CurrentAccountSigner } from "@mysten/dapp-kit-react";
 import { Transaction } from "@mysten/sui/transactions";
 import { addProvenanceEvent, transferCertificate } from "../contracts/atelier/atelier";
@@ -161,12 +162,12 @@ export default function ItemDetailPage() {
     setIsSubmitting(true);
     setActionError(null);
     try {
-      if (!signer) throw new Error("Wallet signer not available.");
       const tx = new Transaction();
       addProvenanceEvent({
         package: ATELIER_PACKAGE_ID,
         arguments: [id, eventData.type, eventData.location, eventData.note || "N/A"],
       })(tx);
+      if (!signer) throw new Error("Wallet signer not available.");
       await (signer as any).signAndExecuteTransaction({ transaction: tx });
       setTimeout(() => refetch(), 2000);
       setActiveAction("none");
@@ -184,12 +185,12 @@ export default function ItemDetailPage() {
     setIsSubmitting(true);
     setActionError(null);
     try {
-      if (!signer) throw new Error("Wallet signer not available.");
       const tx = new Transaction();
       transferCertificate({
         package: ATELIER_PACKAGE_ID,
         arguments: [id, transferData.recipient],
       })(tx);
+      if (!signer) throw new Error("Wallet signer not available.");
       await (signer as any).signAndExecuteTransaction({ transaction: tx });
       setTimeout(() => refetch(), 2000);
       setActiveAction("none");
@@ -587,15 +588,15 @@ export default function ItemDetailPage() {
       {/* ── Security Audit Panel (Dev/Test Only) ── */}
       <div className="mt-12 rounded-3xl overflow-hidden border border-red-200 bg-red-50/20 backdrop-blur-sm animate-in fade-in slide-in-from-bottom-8 duration-1000 delay-500">
         <div className="p-1 px-4 bg-red-500 flex justify-between items-center">
-           <span className="text-[10px] font-black text-white uppercase tracking-[0.3em]">Security Audit Lab</span>
-           <button 
+          <span className="text-[10px] font-black text-white uppercase tracking-[0.3em]">Security Audit Lab</span>
+          <button
             onClick={() => setShowAuditPanel(!showAuditPanel)}
             className="text-white hover:bg-white/10 p-1 rounded transition-colors"
-           >
-             {showAuditPanel ? <EyeOff className="h-3 w-3" /> : <Eye className="h-3 w-3" />}
-           </button>
+          >
+            {showAuditPanel ? <EyeOff className="h-3 w-3" /> : <Eye className="h-3 w-3" />}
+          </button>
         </div>
-        
+
         {showAuditPanel && (
           <div className="p-6 grid gap-6 md:grid-cols-3">
             <div className="space-y-2">

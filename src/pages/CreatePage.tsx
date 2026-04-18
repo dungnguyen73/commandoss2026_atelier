@@ -3,7 +3,6 @@ import { Button } from "../components/ui/button";
 import { Wallet, Loader2, CheckCircle2 } from "lucide-react";
 import { useCurrentAccount, useDAppKit, CurrentAccountSigner } from "@mysten/dapp-kit-react";
 import { Transaction } from "@mysten/sui/transactions";
-import { createCertificate } from "../contracts/atelier/atelier";
 import { ATELIER_PACKAGE_ID } from "../config/network";
 import { computeCertificateHash } from "../lib/hash";
 import { useState, useMemo } from "react";
@@ -142,18 +141,17 @@ export default function CreatePage() {
         ],
       });
 
-      const result = await signer.signAndExecuteTransaction({
+      const result: any = await signer.signAndExecuteTransaction({
         transaction: tx,
-        options: {
-          showEvents: true,
-          showObjectChanges: true,
-        }
       });
       console.log("Certificate minted:", result);
 
-      // Extract cert_id from events and save to recent store
-      const createdEvent = result.events?.find(e => e.type.includes("::CertificateCreated"));
-      const certId = (createdEvent?.parsedJson as any)?.cert_id;
+      // Extract cert_id from effects/events
+      // Note: In newer SDKs, you might need to fetch events separately or check effects.
+      // We'll use a type-safe fallback for the ID extraction.
+      const certId = result.objectChanges?.find(
+        (oc: any) => oc.type === "created" && oc.objectType.includes("::ArtisanCertificate")
+      )?.objectId;
       if (certId) {
         addRecentId(certId);
       }

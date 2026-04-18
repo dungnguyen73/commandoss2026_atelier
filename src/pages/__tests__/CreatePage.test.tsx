@@ -11,11 +11,17 @@ vi.mock("@mysten/dapp-kit-react", () => ({
   CurrentAccountSigner: vi.fn(),
 }));
 
-// Mock icons to avoid rendering complexities in unit tests
+// Mock the custom hook used in CreatePage
+vi.mock("../../hooks/useArtisanProfile", () => ({
+  useArtisanProfile: vi.fn(() => ({ profile: { id: "0xprofile" } })),
+}));
+
+// Mock icons
 vi.mock("lucide-react", () => ({
   Wallet: () => <div data-testid="wallet-icon" />,
   Loader2: () => <div data-testid="loader-icon" />,
   CheckCircle2: () => <div data-testid="check-icon" />,
+  Gem: () => <div data-testid="gem-icon" />,
 }));
 
 describe("CreatePage", () => {
@@ -28,7 +34,7 @@ describe("CreatePage", () => {
       </BrowserRouter>
     );
 
-    expect(screen.getByText(/Connect your SUI wallet to mint this batch/i)).toBeInTheDocument();
+    expect(screen.getByText(/Connect your SUI wallet to mint/i)).toBeInTheDocument();
   });
 
   it("renders the form when account is connected", () => {
@@ -42,7 +48,7 @@ describe("CreatePage", () => {
 
     expect(screen.getByLabelText(/Product Name/i)).toBeInTheDocument();
     expect(screen.getByLabelText(/Category/i)).toBeInTheDocument();
-    expect(screen.getByRole("button", { name: /Mint Product Batch/i })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: /Mint Certificate/i })).toBeInTheDocument();
   });
 
   it("validation: mint button is disabled if required fields are empty", () => {
@@ -54,7 +60,7 @@ describe("CreatePage", () => {
       </BrowserRouter>
     );
 
-    const mintButton = screen.getByRole("button", { name: /Mint Product Batch/i });
+    const mintButton = screen.getByRole("button", { name: /Mint Certificate/i });
     expect(mintButton).toBeDisabled();
   });
 
@@ -67,14 +73,13 @@ describe("CreatePage", () => {
       </BrowserRouter>
     );
 
-    fireEvent.change(screen.getByLabelText(/Product Name/i), { target: { value: "Jasmine Rice" } });
-    fireEvent.change(screen.getByLabelText(/Category/i), { target: { value: "Grains" } });
-    fireEvent.change(screen.getByLabelText(/Quantity/i), { target: { value: "500kg" } });
-    fireEvent.change(screen.getByLabelText(/Origin Farm/i), { target: { value: "Farm A" } });
-    fireEvent.change(screen.getByLabelText(/Province \/ Region/i), { target: { value: "Province B" } });
-    fireEvent.change(screen.getByLabelText(/Certification Note/i), { target: { value: "Organic" } });
+    fireEvent.change(screen.getByLabelText(/Product Name/i), { target: { value: "Celadon Vase" } });
+    fireEvent.change(screen.getByLabelText(/Category/i), { target: { value: "Ceramics" } });
+    fireEvent.change(screen.getByLabelText(/Artisan Name/i), { target: { value: "Jane Doe" } });
+    fireEvent.change(screen.getByLabelText(/Location \/ Studio/i), { target: { value: "Hanoi" } });
+    fireEvent.change(screen.getByLabelText(/Materials/i), { target: { value: "Clay" } });
 
-    const mintButton = screen.getByRole("button", { name: /Mint Product Batch/i });
+    const mintButton = screen.getByRole("button", { name: /Mint Certificate/i });
     expect(mintButton).not.toBeDisabled();
   });
 });

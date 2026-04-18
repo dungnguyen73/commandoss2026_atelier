@@ -61,7 +61,6 @@ export default function DashboardPage() {
   );
 
   const handleCreateProfile = async () => {
-    if (!signer) return;
     setIsSettingUp(true);
     try {
       const tx = new Transaction();

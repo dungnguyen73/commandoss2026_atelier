@@ -3,16 +3,24 @@ name: Deploy to GitHub Pages
 on:
   push:
     branches:
-      - master # Deploy when pushing to master
-  workflow_dispatch: # Allow manual triggers
+      - master
+      - feat/zklogin
+  workflow_dispatch:
 
 permissions:
   contents: read
   pages: write
   id-token: write
 
+concurrency:
+  group: "pages"
+  cancel-in-progress: false
+
 jobs:
   build-and-deploy:
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -31,9 +39,6 @@ jobs:
         run: npm run build
         env:
           VITE_ATELIER_PACKAGE_ID: ${{ secrets.VITE_ATELIER_PACKAGE_ID || vars.VITE_ATELIER_PACKAGE_ID || '0xb1b63cf15e0fe6c5fde1e9f6a39d33ec9e5261005a745520cf1b0429cef0f738' }}
-          # Add other env variables here. 
-          # If there is a secret salt, add:
-          # VITE_HASH_SALT: ${{ secrets.VITE_HASH_SALT }}
 
       - name: Setup Pages
         uses: actions/configure-pages@v5

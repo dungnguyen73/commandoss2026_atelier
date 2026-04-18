@@ -31,6 +31,7 @@ The current app assumes users are comfortable with wallet-based onboarding. That
 
 ### Buyer
 As a buyer, I want to sign in with Google so that I can verify a product without installing a wallet.
+=> User can verify the product without login. If user want to buy the product, then user need to login.
 
 ### Verifier
 As a verifier, I want quick access through OAuth so that I can inspect certificates with minimal setup.

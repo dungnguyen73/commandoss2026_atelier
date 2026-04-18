@@ -16,14 +16,14 @@ import { useStore } from "@nanostores/react";
 import { $roleStore, ROLES } from "../store/roleStore";
 import { useState, useMemo } from "react";
 import { unpackNote } from "../lib/unpack";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion } from "framer-motion";
 
 function ActiveFigure() {
   return (
     <div className="relative h-48 w-48 sm:h-64 sm:w-64 flex items-center justify-center animate-float">
       {/* Background Glow */}
       <div className="absolute inset-0 bg-emerald-400/20 blur-[80px] rounded-full animate-pulse-luxury" />
-      
+
       {/* Abstract Glass Sculpture (SVG) */}
       <svg viewBox="0 0 200 200" className="relative z-10 w-full h-full drop-shadow-2xl">
         <defs>
@@ -47,9 +47,9 @@ function ActiveFigure() {
           }}
           transition={{ duration: 10, repeat: Infinity, ease: "easeInOut" }}
         />
-        <motion.circle 
-          cx="100" cy="100" r="10" 
-          fill="#1a1f18" 
+        <motion.circle
+          cx="100" cy="100" r="10"
+          fill="#1a1f18"
           animate={{ scale: [1, 1.2, 1], opacity: [0.5, 1, 0.5] }}
           transition={{ duration: 4, repeat: Infinity }}
         />
@@ -60,14 +60,14 @@ function ActiveFigure() {
 
 function MetricCard({ title, value, icon: Icon, description }: { title: string; value: string | number; icon: any; description: string }) {
   return (
-    <motion.div 
+    <motion.div
       whileHover={{ y: -5, scale: 1.02 }}
       className="rounded-3xl bg-white p-6 shadow-(--shadow-card) ring-1 ring-slate-100 transition-all"
     >
       <div className="flex items-start justify-between">
         <div className="space-y-1 text-left">
           <p className="text-[9px] sm:text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground/60">{title}</p>
-          <motion.h3 
+          <motion.h3
             initial={{ opacity: 0, x: -10 }}
             animate={{ opacity: 1, x: 0 }}
             className="text-2xl sm:text-3xl font-display font-extrabold text-(--color-foreground)"
@@ -154,7 +154,7 @@ function ArtisanView({ account, certificates, isLoading, error, profile, isLoadi
 
 /* ── Owner View ── */
 function OwnerView({ account, certificates, isLoading, error }: any) {
-  const navigate = useNavigate();
+
   return (
     <div className="space-y-4">
       <p className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground/60 mb-6">
@@ -367,20 +367,20 @@ export default function DashboardPage() {
       {/* ── Luxury Hero Section ── */}
       <section className="relative mb-10 sm:mb-16 overflow-hidden rounded-[2rem] sm:rounded-[3rem] luxury-mesh p-8 sm:p-16 ring-1 ring-white/50 shadow-2xl">
         <div className="absolute top-0 right-0 h-full w-full pointer-events-none">
-           <div className="absolute -top-24 -right-24 h-96 w-96 rounded-full bg-emerald-400/10 blur-[100px]" />
-           <div className="absolute -bottom-24 -left-24 h-96 w-96 rounded-full bg-slate-400/10 blur-[100px]" />
+          <div className="absolute -top-24 -right-24 h-96 w-96 rounded-full bg-emerald-400/10 blur-[100px]" />
+          <div className="absolute -bottom-24 -left-24 h-96 w-96 rounded-full bg-slate-400/10 blur-[100px]" />
         </div>
 
         <div className="relative z-10 flex flex-col lg:flex-row items-center justify-between gap-12">
           <div className="max-w-xl text-center lg:text-left">
-            <motion.div 
-               initial={{ opacity: 0, y: 20 }}
-               animate={{ opacity: 1, y: 0 }}
-               className="mb-4 inline-block rounded-full bg-emerald-950 px-4 py-1.5 text-[10px] font-black uppercase tracking-[0.3em] text-emerald-300"
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="mb-4 inline-block rounded-full bg-emerald-950 px-4 py-1.5 text-[10px] font-black uppercase tracking-[0.3em] text-emerald-300"
             >
               Immerse In Provenance
             </motion.div>
-            <motion.h1 
+            <motion.h1
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.1 }}
@@ -388,7 +388,7 @@ export default function DashboardPage() {
             >
               The digital anchor <br /> for <span className="italic font-serif serif text-emerald-800">handcrafted</span> heritage.
             </motion.h1>
-            <motion.p 
+            <motion.p
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.2 }}
@@ -399,30 +399,30 @@ export default function DashboardPage() {
               {activeRole === "Buyer" && "Exploration mode active. Discover authentic masterpieces and the artisans who defined their history."}
               {activeRole === "Verifier" && "Inspector mode active. Directly query the truth of any Atelier anchor on the SUI network."}
             </motion.p>
-            
-            <motion.div 
+
+            <motion.div
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               transition={{ delay: 0.3 }}
               className="mt-10 flex flex-wrap gap-4 justify-center lg:justify-start"
             >
-               {activeRole === "Artisan" && (
-                 <Button variant="primary" onClick={() => navigate("/create")} className="h-14 px-10 rounded-2xl shadow-lg shadow-emerald-900/10">
-                    <PlusCircle className="mr-3 h-5 w-5" /> New Certificate
-                 </Button>
-               )}
-               <Button 
-                 variant="outline" 
-                 onClick={() => document.getElementById("atelier-hub")?.scrollIntoView({ behavior: "smooth" })}
-                 className="h-14 px-10 rounded-2xl bg-white/50 backdrop-blur-sm border-white/80"
-               >
-                  <Search className="mr-3 h-5 w-5" /> View Registry
-               </Button>
+              {activeRole === "Artisan" && (
+                <Button variant="primary" onClick={() => navigate("/create")} className="h-14 px-10 rounded-2xl shadow-lg shadow-emerald-900/10">
+                  <PlusCircle className="mr-3 h-5 w-5" /> New Certificate
+                </Button>
+              )}
+              <Button
+                variant="outline"
+                onClick={() => document.getElementById("atelier-hub")?.scrollIntoView({ behavior: "smooth" })}
+                className="h-14 px-10 rounded-2xl bg-white/50 backdrop-blur-sm border-white/80"
+              >
+                <Search className="mr-3 h-5 w-5" /> View Registry
+              </Button>
             </motion.div>
           </div>
 
           <div className="flex justify-center flex-1">
-             <ActiveFigure />
+            <ActiveFigure />
           </div>
         </div>
       </section>

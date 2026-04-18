@@ -2,9 +2,9 @@ import { useParams, useNavigate } from "react-router-dom";
 import { addRecentId } from "../store/recentStore";
 
 import {
-  ArrowLeft, Gem, MapPin, User, Calendar, History,
+  ArrowLeft, Gem, MapPin, Calendar, History,
   ShieldCheck, ShieldAlert, PlusCircle, Send, X, Loader2,
-  ExternalLink, Copy, Check, Activity, Search, RefreshCw, Eye, EyeOff
+  ExternalLink, Copy, Check, Activity, RefreshCw, Eye, EyeOff
 } from "lucide-react";
 
 import { PageContainer } from "../components/layout/PageContainer";
@@ -20,8 +20,8 @@ import { addProvenanceEvent, transferCertificate } from "../contracts/atelier/at
 import { ATELIER_PACKAGE_ID } from "../config/network";
 import { computeCertificateHash } from "../lib/hash";
 import type { CertStatus } from "../components/shared/StatusBadge";
-import { cn } from "../lib/utils";
 import { unpackNote } from "../lib/unpack";
+import { cn } from "../lib/utils";
 
 
 function formatDate(timestamp: string | number) {
@@ -78,7 +78,7 @@ export default function ItemDetailPage() {
   // Modal / Form states
   const [activeAction, setActiveAction] = useState<"none" | "event" | "transfer">("none");
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [actionError, setActionError] = useState<string | null>(null);
+  const [, setActionError] = useState<string | null>(null);
 
   // Validation state
   const [hashStatus, setHashStatus] = useState<"pending" | "verified" | "tampered">("pending");
@@ -132,11 +132,11 @@ export default function ItemDetailPage() {
   const [eventData, setEventData] = useState({ type: "", location: "", note: "" });
   const [transferData, setTransferData] = useState({ recipient: "" });
 
-  function handleCopy() {
-    navigator.clipboard.writeText(window.location.href).catch(() => { });
-    setCopied(true);
-    setTimeout(() => setCopied(false), 2000);
-  }
+  // function handleCopy() {
+  //   navigator.clipboard.writeText(window.location.href).catch(() => { });
+  //   setCopied(true);
+  //   setTimeout(() => setCopied(false), 2000);
+  // }
 
   function handleCopyObjectIdToClipBoard(id: string) {
     if (!id) return;

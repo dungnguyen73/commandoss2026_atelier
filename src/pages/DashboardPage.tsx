@@ -309,7 +309,7 @@ function VerifierView() {
 export default function DashboardPage() {
   const navigate = useNavigate();
   const account = useCurrentAccount();
-  const { execute, isZkLogin } = useTransactionExecution();
+  const { execute } = useTransactionExecution();
 
   const { certificates: ownedCertificates, isLoading: isLoadingOwned, error: errorOwned } = useOwnedCertificates(account?.address);
   const { certificates: createdCertificates, isLoading: isLoadingCreated, error: errorCreated } = useCreatedCertificates(account?.address);

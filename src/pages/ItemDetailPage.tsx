@@ -4,7 +4,7 @@ import { addRecentId } from "../store/recentStore";
 import {
   ArrowLeft, Gem, MapPin, Calendar, History,
   ShieldCheck, ShieldAlert, PlusCircle, Send, X, Loader2,
-  ExternalLink, Copy, Check, Activity, RefreshCw, Eye, EyeOff
+  ExternalLink, Copy, Check, Activity
 } from "lucide-react";
 
 import { PageContainer } from "../components/layout/PageContainer";
@@ -80,9 +80,9 @@ export default function ItemDetailPage() {
   const [hashStatus, setHashStatus] = useState<"pending" | "verified" | "tampered">("pending");
 
   // Simulation states for testing (Not for production)
-  const [isSimulatingTamper, setIsSimulatingTamper] = useState(false);
-  const [isSimulatingAnchorTamper, setIsSimulatingAnchorTamper] = useState(false);
-  const [showAuditPanel, setShowAuditPanel] = useState(false);
+  const [isSimulatingTamper] = useState(false);
+  const [isSimulatingAnchorTamper] = useState(false);
+  // const [showAuditPanel, setShowAuditPanel] = useState(false);
 
   // Voting stats
   const { data: votingData, refetch: refetchVoting } = useVotingData(id ?? "");

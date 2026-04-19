@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useZkLogin } from "../hooks/useZkLogin";
-import { Loader2, Gem, AlertTriangle } from "lucide-react";
+import { Gem, AlertTriangle } from "lucide-react";
 import { motion } from "framer-motion";
 
 export default function ZkLoginCallbackPage() {
@@ -20,12 +20,12 @@ export default function ZkLoginCallbackPage() {
       handleCallback(window.location.hash);
       // Clean up the URL on success, preventing token leakage in sharing history
       window.history.replaceState(null, "", window.location.pathname);
-      
+
       // Let the user see the success animation briefly before routing
       setTimeout(() => {
         navigate("/dashboard");
       }, 1000);
-      
+
     } catch (err: any) {
       setError(err.message || "Failed to process authentication");
     }
@@ -33,7 +33,7 @@ export default function ZkLoginCallbackPage() {
 
   return (
     <div className="flex min-h-screen items-center justify-center bg-[var(--color-background)] px-4">
-      <motion.div 
+      <motion.div
         initial={{ opacity: 0, scale: 0.95 }}
         animate={{ opacity: 1, scale: 1 }}
         className="w-full max-w-md rounded-[2rem] bg-white p-8 text-center shadow-[var(--shadow-card)] ring-1 ring-slate-100"
@@ -45,7 +45,7 @@ export default function ZkLoginCallbackPage() {
             </div>
             <h2 className="font-display text-2xl font-bold text-(--color-foreground) mb-2">Authentication Failed</h2>
             <p className="text-sm text-muted-foreground mb-8">{error}</p>
-            <button 
+            <button
               onClick={() => navigate("/")}
               className="w-full rounded-xl bg-(--color-surface-low) py-3 text-sm font-semibold text-(--color-foreground) transition-colors hover:bg-slate-200"
             >
@@ -63,7 +63,7 @@ export default function ZkLoginCallbackPage() {
             </div>
             <h2 className="font-display text-2xl font-bold text-(--color-foreground) mb-2">Securing Session</h2>
             <p className="text-sm text-muted-foreground">Deriving your on-chain identity...</p>
-            
+
             <div className="mt-8 flex gap-2">
               <div className="h-2 w-2 rounded-full bg-emerald-500 animate-bounce" style={{ animationDelay: '0ms' }} />
               <div className="h-2 w-2 rounded-full bg-emerald-500 animate-bounce" style={{ animationDelay: '150ms' }} />

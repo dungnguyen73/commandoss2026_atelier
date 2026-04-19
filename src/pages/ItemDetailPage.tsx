@@ -654,7 +654,7 @@ export default function ItemDetailPage() {
       </div>
 
       {/* ── Security Audit Panel (Remains for Testing) ── */}
-      <div className="mt-16 rounded-[2rem] overflow-hidden border border-red-200 bg-red-50/20 backdrop-blur-sm animate-in fade-in duration-1000 delay-500">
+      {/* <div className="mt-16 rounded-[2rem] overflow-hidden border border-red-200 bg-red-50/20 backdrop-blur-sm animate-in fade-in duration-1000 delay-500">
         <div className="p-2 px-6 bg-red-500 flex justify-between items-center">
           <span className="text-[9px] font-black text-white uppercase tracking-[0.4em]">Cryptographic Integrity Laboratory</span>
           <button onClick={() => setShowAuditPanel(!showAuditPanel)} className="text-white hover:bg-white/10 p-1.5 rounded-full transition-colors">
@@ -686,7 +686,7 @@ export default function ItemDetailPage() {
             </Button>
           </div>
         )}
-      </div>
+      </div> */}
     </PageContainer>
   );
 }

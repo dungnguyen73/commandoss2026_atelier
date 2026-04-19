@@ -7,7 +7,7 @@
     "dev": "vite",
     "build": "tsc && vite build",
     "preview": "vite preview",
-    "codegen": "rm -rf src/contracts && sui-ts-codegen generate",
+    "codegen": "powershell -Command \"if (Test-Path src/contracts) { Remove-Item -Recurse -Force src/contracts }\" && sui-ts-codegen generate",
     "test": "vitest run",
     "test:watch": "vitest"
   },

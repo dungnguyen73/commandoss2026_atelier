@@ -25,6 +25,8 @@
 import { MoveStruct, normalizeMoveArguments, type RawTransactionArgument } from '../utils/index.js';
 import { bcs } from '@mysten/sui/bcs';
 import { type Transaction } from '@mysten/sui/transactions';
+import * as table from './deps/sui/table.js';
+import * as table_1 from './deps/sui/table.js';
 const $moduleName = '@local-pkg/atelier::atelier';
 export const ProvenanceEvent = new MoveStruct({
     name: `${$moduleName}::ProvenanceEvent`, fields: {
@@ -67,6 +69,13 @@ export const ArtisanCertificate = new MoveStruct({
         created_at: bcs.u64()
     }
 });
+export const ArtisanProfile = new MoveStruct({
+    name: `${$moduleName}::ArtisanProfile`, fields: {
+        id: bcs.Address,
+        /** List of certificate IDs minted by this artisan. */
+        roots: bcs.vector(bcs.Address)
+    }
+});
 export const CertificateCreated = new MoveStruct({
     name: `${$moduleName}::CertificateCreated`, fields: {
         cert_id: bcs.Address,
@@ -95,7 +104,50 @@ export const CertHashUpdated = new MoveStruct({
         actor: bcs.Address
     }
 });
+export const ArtisanProfileCreated = new MoveStruct({
+    name: `${$moduleName}::ArtisanProfileCreated`, fields: {
+        profile_id: bcs.Address,
+        owner: bcs.Address
+    }
+});
+export const VoteCast = new MoveStruct({
+    name: `${$moduleName}::VoteCast`, fields: {
+        cert_id: bcs.Address,
+        voter: bcs.Address,
+        is_legit: bcs.bool()
+    }
+});
+export const VerificationRegistry = new MoveStruct({
+    name: `${$moduleName}::VerificationRegistry`, fields: {
+        id: bcs.Address,
+        /** Maps Certificate ID to its community vote summary. */
+        votes: table.Table
+    }
+});
+export const VoteSummary = new MoveStruct({
+    name: `${$moduleName}::VoteSummary`, fields: {
+        upvotes: bcs.u64(),
+        downvotes: bcs.u64(),
+        /** Maps voter address to their vote choice (1 = Legit, 2 = Suspicious). */
+        voters: table_1.Table
+    }
+});
+export interface CreateProfileOptions {
+    package?: string;
+    arguments?: [
+    ];
+}
+/** Initialize an Artisan Registry (Profile) for the sender. */
+export function createProfile(options: CreateProfileOptions = {}) {
+    const packageAddress = options.package ?? '@local-pkg/atelier';
+    return (tx: Transaction) => tx.moveCall({
+        package: packageAddress,
+        module: 'atelier',
+        function: 'create_profile',
+    });
+}
 export interface CreateCertificateArguments {
+    profile: RawTransactionArgument<string>;
     name: RawTransactionArgument<string>;
     category: RawTransactionArgument<string>;
     artisanName: RawTransactionArgument<string>;
@@ -107,6 +159,7 @@ export interface CreateCertificateArguments {
 export interface CreateCertificateOptions {
     package?: string;
     arguments: CreateCertificateArguments | [
+        profile: RawTransactionArgument<string>,
         name: RawTransactionArgument<string>,
         category: RawTransactionArgument<string>,
         artisanName: RawTransactionArgument<string>,
@@ -117,18 +170,13 @@ export interface CreateCertificateOptions {
     ];
 }
 /**
- * Mint a new `ArtisanCertificate` and transfer it to the calling artisan.
- *
- * Parameters
- *
- * ---
- *
- * `cert_hash` — SHA-256 hex string, computed off-chain from the canonical JSON of
- * the other fields before calling this.
+ * Mint a new `ArtisanCertificate` and transfer it to the calling artisan. Also
+ * records the certificate ID in the artisan's profile registry.
  */
 export function createCertificate(options: CreateCertificateOptions) {
     const packageAddress = options.package ?? '@local-pkg/atelier';
     const argumentsTypes = [
+        null,
         '0x1::string::String',
         '0x1::string::String',
         '0x1::string::String',
@@ -138,7 +186,7 @@ export function createCertificate(options: CreateCertificateOptions) {
         '0x1::string::String',
         '0x2::clock::Clock'
     ] satisfies (string | null)[];
-    const parameterNames = ["name", "category", "artisanName", "location", "materials", "note", "certHash"];
+    const parameterNames = ["profile", "name", "category", "artisanName", "location", "materials", "note", "certHash"];
     return (tx: Transaction) => tx.moveCall({
         package: packageAddress,
         module: 'atelier',
@@ -295,6 +343,38 @@ export function closeCertificate(options: CloseCertificateOptions) {
         package: packageAddress,
         module: 'atelier',
         function: 'close_certificate',
+        arguments: normalizeMoveArguments(options.arguments, argumentsTypes, parameterNames),
+    });
+}
+export interface CastVoteArguments {
+    registry: RawTransactionArgument<string>;
+    certId: RawTransactionArgument<string>;
+    isLegit: RawTransactionArgument<boolean>;
+}
+export interface CastVoteOptions {
+    package?: string;
+    arguments: CastVoteArguments | [
+        registry: RawTransactionArgument<string>,
+        certId: RawTransactionArgument<string>,
+        isLegit: RawTransactionArgument<boolean>
+    ];
+}
+/**
+ * Cast or update a verdict on a certificate's legitimacy. 1 = Legit (Upvote), 2 =
+ * Suspicious (Downvote).
+ */
+export function castVote(options: CastVoteOptions) {
+    const packageAddress = options.package ?? '@local-pkg/atelier';
+    const argumentsTypes = [
+        null,
+        '0x2::object::ID',
+        'bool'
+    ] satisfies (string | null)[];
+    const parameterNames = ["registry", "certId", "isLegit"];
+    return (tx: Transaction) => tx.moveCall({
+        package: packageAddress,
+        module: 'atelier',
+        function: 'cast_vote',
         arguments: normalizeMoveArguments(options.arguments, argumentsTypes, parameterNames),
     });
 }
@@ -537,6 +617,56 @@ export function history(options: HistoryOptions) {
         package: packageAddress,
         module: 'atelier',
         function: 'history',
+        arguments: normalizeMoveArguments(options.arguments, argumentsTypes, parameterNames),
+    });
+}
+export interface UpvotesArguments {
+    registry: RawTransactionArgument<string>;
+    certId: RawTransactionArgument<string>;
+}
+export interface UpvotesOptions {
+    package?: string;
+    arguments: UpvotesArguments | [
+        registry: RawTransactionArgument<string>,
+        certId: RawTransactionArgument<string>
+    ];
+}
+export function upvotes(options: UpvotesOptions) {
+    const packageAddress = options.package ?? '@local-pkg/atelier';
+    const argumentsTypes = [
+        null,
+        '0x2::object::ID'
+    ] satisfies (string | null)[];
+    const parameterNames = ["registry", "certId"];
+    return (tx: Transaction) => tx.moveCall({
+        package: packageAddress,
+        module: 'atelier',
+        function: 'upvotes',
+        arguments: normalizeMoveArguments(options.arguments, argumentsTypes, parameterNames),
+    });
+}
+export interface DownvotesArguments {
+    registry: RawTransactionArgument<string>;
+    certId: RawTransactionArgument<string>;
+}
+export interface DownvotesOptions {
+    package?: string;
+    arguments: DownvotesArguments | [
+        registry: RawTransactionArgument<string>,
+        certId: RawTransactionArgument<string>
+    ];
+}
+export function downvotes(options: DownvotesOptions) {
+    const packageAddress = options.package ?? '@local-pkg/atelier';
+    const argumentsTypes = [
+        null,
+        '0x2::object::ID'
+    ] satisfies (string | null)[];
+    const parameterNames = ["registry", "certId"];
+    return (tx: Transaction) => tx.moveCall({
+        package: packageAddress,
+        module: 'atelier',
+        function: 'downvotes',
         arguments: normalizeMoveArguments(options.arguments, argumentsTypes, parameterNames),
     });
 }

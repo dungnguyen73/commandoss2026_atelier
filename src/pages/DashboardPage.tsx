@@ -5,7 +5,8 @@ import { Button } from "../components/ui/button";
 import { EmptyState } from "../components/shared/EmptyState";
 import { BatchCard } from "../components/shared/BatchCard";
 import { cn } from "../lib/utils";
-import { useCurrentAccount, useDAppKit, CurrentAccountSigner } from "@mysten/dapp-kit-react";
+import { useCurrentAccount } from "@mysten/dapp-kit-react";
+import { useTransactionExecution } from "../hooks/useTransactionExecution";
 import { useOwnedCertificates } from "../hooks/useOwnedCertificates";
 import { useCreatedCertificates } from "../hooks/useCreatedCertificates";
 import { useRecentCertificates } from "../hooks/useRecentCertificates";
@@ -260,7 +261,8 @@ function VerifierView() {
           </div>
           <h2 className="font-display text-3xl font-extrabold text-(--color-foreground)">Registry Inspector</h2>
           <p className="max-w-md text-sm text-muted-foreground mt-3 leading-relaxed">
-            Verify the provenance and authenticity of any Atelier piece by entering its unique cryptographic identifier.
+            Verify the provenance and authenticity of any Atelier piece by entering its unique topographic identifier. 
+            <span className="block mt-2 font-bold text-(--color-primary)">Now supporting Verifier Verdicts: Cast your professional vote on any item to build community trust.</span>
           </p>
         </div>
 
@@ -307,8 +309,7 @@ function VerifierView() {
 export default function DashboardPage() {
   const navigate = useNavigate();
   const account = useCurrentAccount();
-  const dAppKit = useDAppKit();
-  const signer = useMemo(() => new CurrentAccountSigner(dAppKit as any), [dAppKit]);
+  const { execute, isZkLogin } = useTransactionExecution();
 
   const { certificates: ownedCertificates, isLoading: isLoadingOwned, error: errorOwned } = useOwnedCertificates(account?.address);
   const { certificates: createdCertificates, isLoading: isLoadingCreated, error: errorCreated } = useCreatedCertificates(account?.address);
@@ -353,7 +354,7 @@ export default function DashboardPage() {
         target: `${ATELIER_PACKAGE_ID}::atelier::create_profile`,
         arguments: [],
       });
-      await signer.signAndExecuteTransaction({ transaction: tx });
+      await execute(tx);
       await refetchProfile();
     } catch (err) {
       console.error("Profile setup failed:", err);

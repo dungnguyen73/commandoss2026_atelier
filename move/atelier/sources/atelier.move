@@ -18,6 +18,7 @@ module atelier::atelier {
     use std::string::String;
     use sui::clock::{Self, Clock};
     use sui::event;
+    use sui::table::{Self, Table};
 
     // -------------------------------------------------------------------------
     // Errors
@@ -126,6 +127,44 @@ module atelier::atelier {
     public struct ArtisanProfileCreated has copy, drop {
         profile_id: ID,
         owner: address,
+    }
+
+    /// Emitted when a verifier casts a vote on a certificate.
+    public struct VoteCast has copy, drop {
+        cert_id: ID,
+        voter: address,
+        is_legit: bool,
+    }
+
+    // -------------------------------------------------------------------------
+    // Registries (Shared Objects)
+    // -------------------------------------------------------------------------
+
+    /// A global shared object that tracks community trust for all certificates.
+    public struct VerificationRegistry has key {
+        id: UID,
+        /// Maps Certificate ID to its community vote summary.
+        votes: Table<ID, VoteSummary>,
+    }
+
+    /// Aggregate trust data for a single certificate.
+    public struct VoteSummary has store {
+        upvotes: u64,
+        downvotes: u64,
+        /// Maps voter address to their vote choice (1 = Legit, 2 = Suspicious).
+        voters: Table<address, u8>,
+    }
+
+    // -------------------------------------------------------------------------
+    // Module Initializer
+    // -------------------------------------------------------------------------
+
+    fun init(ctx: &mut TxContext) {
+        let registry = VerificationRegistry {
+            id: object::new(ctx),
+            votes: table::new<ID, VoteSummary>(ctx),
+        };
+        transfer::share_object(registry);
     }
 
     // -------------------------------------------------------------------------
@@ -327,6 +366,47 @@ module atelier::atelier {
         });
     }
 
+    /// Cast or update a verdict on a certificate's legitimacy.
+    /// 1 = Legit (Upvote), 2 = Suspicious (Downvote).
+    public entry fun cast_vote(
+        registry: &mut VerificationRegistry,
+        cert_id: ID,
+        is_legit: bool,
+        ctx: &mut TxContext
+    ) {
+        let voter = tx_context::sender(ctx);
+        
+        // Ensure the summary exists for this certificate
+        if (!table::contains(&registry.votes, cert_id)) {
+            table::add(&mut registry.votes, cert_id, VoteSummary {
+                upvotes: 0,
+                downvotes: 0,
+                voters: table::new<address, u8>(ctx),
+            });
+        };
+
+        let summary = table::borrow_mut(&mut registry.votes, cert_id);
+        let choice = if (is_legit) { 1 } else { 2 };
+
+        if (table::contains(&summary.voters, voter)) {
+            let old_choice = *table::borrow(&summary.voters, voter);
+            if (old_choice == choice) return; // No change
+
+            // Rollback old vote
+            if (old_choice == 1) { summary.upvotes = summary.upvotes - 1 }
+            else { summary.downvotes = summary.downvotes - 1 };
+
+            table::remove(&mut summary.voters, voter);
+        };
+
+        // Apply new vote
+        table::add(&mut summary.voters, voter, choice);
+        if (choice == 1) { summary.upvotes = summary.upvotes + 1 }
+        else { summary.downvotes = summary.downvotes + 1 };
+
+        event::emit(VoteCast { cert_id, voter, is_legit });
+    }
+
     // -------------------------------------------------------------------------
     // Read-only helpers (pure, no gas needed via devInspect)
     // -------------------------------------------------------------------------
@@ -343,5 +423,16 @@ module atelier::atelier {
     public fun created_at(cert: &ArtisanCertificate): u64        { cert.created_at }
     public fun history(cert: &ArtisanCertificate): &vector<ProvenanceEvent> {
         &cert.history
+    }
+
+    // Voting Read Helpers
+    public fun upvotes(registry: &VerificationRegistry, cert_id: ID): u64 {
+        if (!table::contains(&registry.votes, cert_id)) return 0;
+        table::borrow(&registry.votes, cert_id).upvotes
+    }
+
+    public fun downvotes(registry: &VerificationRegistry, cert_id: ID): u64 {
+        if (!table::contains(&registry.votes, cert_id)) return 0;
+        table::borrow(&registry.votes, cert_id).downvotes
     }
 }

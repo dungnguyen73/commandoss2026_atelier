@@ -14,7 +14,9 @@ import { useCertificateData } from "../hooks/useCertificateData";
 import { useState, useMemo, useEffect } from "react";
 // @ts-ignore
 import { QRCode } from "react-qr-code";
-import { useCurrentAccount, useDAppKit, CurrentAccountSigner } from "@mysten/dapp-kit-react";
+import { useCurrentAccount } from "@mysten/dapp-kit-react";
+import { useTransactionExecution } from "../hooks/useTransactionExecution";
+import { motion } from "framer-motion";
 import { Transaction } from "@mysten/sui/transactions";
 import { addProvenanceEvent, transferCertificate } from "../contracts/atelier/atelier";
 import { ATELIER_PACKAGE_ID } from "../config/network";
@@ -22,6 +24,11 @@ import { computeCertificateHash } from "../lib/hash";
 import type { CertStatus } from "../components/shared/StatusBadge";
 import { unpackNote } from "../lib/unpack";
 import { cn } from "../lib/utils";
+import { useStore } from "@nanostores/react";
+import { $roleStore } from "../store/roleStore";
+import { useVotingData } from "../hooks/useVotingData";
+import { VERIFICATION_REGISTRY_ID } from "../config/network";
+import { castVote } from "../contracts/atelier/atelier";
 
 
 function formatDate(timestamp: string | number) {
@@ -57,28 +64,17 @@ export default function ItemDetailPage() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const account = useCurrentAccount();
-  const dAppKit = useDAppKit();
+  const { execute, isZkLogin, isConnected } = useTransactionExecution();
 
   const [copied, setCopied] = useState(false);
 
-
-  const signer = useMemo(() => {
-    try {
-      if (typeof CurrentAccountSigner !== "undefined" && dAppKit) {
-        return new CurrentAccountSigner(dAppKit as any);
-      }
-    } catch (e) {
-      console.error("Signer initialization failed:", e);
-    }
-    return null;
-  }, [dAppKit]);
 
   const { certificate, ownerAddress, isLoading, error, refetch } = useCertificateData(id);
   console.log("certificate", certificate);
   // Modal / Form states
   const [activeAction, setActiveAction] = useState<"none" | "event" | "transfer">("none");
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [, setActionError] = useState<string | null>(null);
+  const [actionError, setActionError] = useState<string | null>(null);
 
   // Validation state
   const [hashStatus, setHashStatus] = useState<"pending" | "verified" | "tampered">("pending");
@@ -87,6 +83,11 @@ export default function ItemDetailPage() {
   const [isSimulatingTamper, setIsSimulatingTamper] = useState(false);
   const [isSimulatingAnchorTamper, setIsSimulatingAnchorTamper] = useState(false);
   const [showAuditPanel, setShowAuditPanel] = useState(false);
+
+  // Voting stats
+  const { data: votingData, refetch: refetchVoting } = useVotingData(id ?? "");
+  const activeRole = useStore($roleStore);
+  const isVerifier = activeRole === "Verifier";
 
 
   useEffect(() => {
@@ -169,8 +170,7 @@ export default function ItemDetailPage() {
         package: ATELIER_PACKAGE_ID,
         arguments: [id, eventData.type, eventData.location, eventData.note || "N/A"],
       })(tx);
-      if (!signer) throw new Error("Wallet signer not available.");
-      await (signer as any).signAndExecuteTransaction({ transaction: tx });
+      await execute(tx);
       setTimeout(() => refetch(), 2000);
       setActiveAction("none");
       setEventData({ type: "", location: "", note: "" });
@@ -192,8 +192,7 @@ export default function ItemDetailPage() {
         package: ATELIER_PACKAGE_ID,
         arguments: [id, transferData.recipient],
       })(tx);
-      if (!signer) throw new Error("Wallet signer not available.");
-      await (signer as any).signAndExecuteTransaction({ transaction: tx });
+      await execute(tx);
       setTimeout(() => refetch(), 2000);
       setActiveAction("none");
       setTransferData({ recipient: "" });
@@ -204,10 +203,40 @@ export default function ItemDetailPage() {
     }
   }
 
+  async function handleVote(isLegit: boolean) {
+    if (!id || !VERIFICATION_REGISTRY_ID) return;
+
+    // Bug fix: guard against unauthenticated users before touching the chain
+    if (!isConnected) {
+      setActionError("Please connect your wallet or sign in to cast a verdict.");
+      return;
+    }
+
+    setIsSubmitting(true);
+    setActionError(null);
+    try {
+      const tx = new Transaction();
+      castVote({
+        package: ATELIER_PACKAGE_ID,
+        arguments: [VERIFICATION_REGISTRY_ID, id, isLegit],
+      })(tx);
+
+      await execute(tx);
+      // Allow some time for the chain to update
+      setTimeout(() => {
+        refetchVoting();
+      }, 2000);
+    } catch (err: any) {
+      setActionError(err.message || "Failed to cast verdict.");
+    } finally {
+      setIsSubmitting(false);
+    }
+  }
+
   if (isLoading) {
     return (
       <PageContainer>
-        <div className="flex flex-col items-center justify-center py-20 text-[var(--color-muted-foreground)]">
+        <div className="flex flex-col items-center justify-center py-20 text-muted-foreground">
           <Loader2 className="h-10 w-10 animate-spin" />
           <p className="mt-4 font-medium">Loading certificate record from SUI…</p>
         </div>
@@ -261,11 +290,11 @@ export default function ItemDetailPage() {
 
           {/* Main Product Card */}
           <div className="overflow-hidden rounded-[2.5rem] bg-white shadow-[0px_40px_80px_-20px_rgba(10,77,44,0.12)] ring-1 ring-slate-100">
-            <div className={`aspect-[4/5] bg-(--color-surface-low) relative group`}>
+            <div className={`aspect-4/5 bg-(--color-surface-low) relative group`}>
               {imageUrl ? (
                 <img src={imageUrl} alt={certificate.name} className="h-full w-full object-cover transition-transform duration-1000 group-hover:scale-105" />
               ) : (
-                <div className="flex h-full w-full items-center justify-center bg-gradient-to-br from-slate-50 to-emerald-50 text-(--color-primary)/10">
+                <div className="flex h-full w-full items-center justify-center bg-linear-to-br from-slate-50 to-emerald-50 text-(--color-primary)/10">
                   <Gem className="h-24 w-24 rotate-12" />
                 </div>
               )}
@@ -274,7 +303,7 @@ export default function ItemDetailPage() {
               <div className="absolute bottom-6 left-6 right-6 p-6 glass-pill rounded-3xl flex items-center justify-between gap-4">
                 <div>
                   <p className="text-[10px] font-black uppercase tracking-[0.2em] text-(--color-primary)/70 mb-1">Authentic Registry</p>
-                  <p className="font-mono text-xs font-bold text-(--color-foreground) truncate max-w-[12rem]">{id}</p>
+                  <p className="font-mono text-xs font-bold text-(--color-foreground) truncate max-w-48">{id}</p>
                 </div>
                 <div className="flex items-center gap-2">
                   <Button variant="ghost" size="sm" onClick={() => window.open(`https://suiscan.xyz/mainnet/object/${id}`, "_blank")} className="h-10 w-10 rounded-2xl bg-white shadow-sm ring-1 ring-slate-100 p-0 text-slate-400 hover:text-(--color-primary) transition-all">
@@ -331,7 +360,7 @@ export default function ItemDetailPage() {
             "relative overflow-hidden rounded-[2.5rem] p-8 transition-all duration-700",
             isTampered
               ? "bg-red-50 ring-1 ring-red-200/50 text-red-900"
-              : "bg-(--color-primary-container)/30 ring-1 ring-(--color-primary)/10 text-(--color-primary)"
+              : "bg-primary-container/30 ring-1 ring-(--color-primary)/10 text-(--color-primary)"
           )}>
             <div className="relative z-10 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-6">
               <div className="flex items-center gap-6">
@@ -367,6 +396,64 @@ export default function ItemDetailPage() {
               isTampered ? "text-red-900" : "text-(--color-primary)"
             )} />
           </div>
+
+          {/* Community Verdict Stats */}
+          <div className="flex flex-wrap gap-4 animate-in fade-in slide-in-from-top-4 duration-1000 delay-300">
+            <div className="flex items-center gap-3 px-6 py-4 bg-white rounded-3xl ring-1 ring-slate-100 shadow-sm transition-all hover:shadow-md">
+              <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-emerald-50 text-(--color-primary)">
+                <ShieldCheck className="h-5 w-5" />
+              </div>
+              <div>
+                <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Vouches</p>
+                <p className="text-xl font-black text-(--color-foreground)">{votingData?.upvotes || 0}</p>
+              </div>
+            </div>
+
+            <div className="flex items-center gap-3 px-6 py-4 bg-white rounded-3xl ring-1 ring-slate-100 shadow-sm transition-all hover:shadow-md">
+              <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-red-50 text-red-500">
+                <ShieldAlert className="h-5 w-5" />
+              </div>
+              <div>
+                <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Flags</p>
+                <p className="text-xl font-black text-(--color-foreground)">{votingData?.downvotes || 0}</p>
+              </div>
+            </div>
+
+            <div className="flex-1 min-w-[200px] flex items-center justify-between px-6 py-4 bg-emerald-950 text-white rounded-3xl shadow-lg">
+              <div>
+                <p className="text-[10px] font-black uppercase tracking-widest opacity-60">Community Trust</p>
+                <p className="text-sm font-bold">
+                  {((votingData?.upvotes || 0) + (votingData?.downvotes || 0)) > 0
+                    ? `${Math.round(((votingData?.upvotes || 0) / ((votingData?.upvotes || 0) + (votingData?.downvotes || 0))) * 100)}% Confidence`
+                    : "Awaiting Reviews"}
+                </p>
+              </div>
+              <Activity className="h-5 w-5 text-emerald-400 opacity-50" />
+            </div>
+          </div>
+
+          {/* Action Error Alert */}
+          {actionError && (
+            <motion.div
+              initial={{ opacity: 0, height: 0 }}
+              animate={{ opacity: 1, height: "auto" }}
+              className="bg-red-50 border border-red-200 rounded-3xl p-6 flex items-start gap-4 text-red-900"
+            >
+              <div className="bg-red-600 p-2 rounded-xl text-white">
+                <ShieldAlert className="h-5 w-5" />
+              </div>
+              <div className="flex-1">
+                <p className="font-black uppercase tracking-widest text-[10px] mb-1">Authorization Failure</p>
+                <p className="text-sm font-medium leading-relaxed">{actionError}</p>
+                <button
+                  onClick={() => setActionError(null)}
+                  className="mt-3 text-[10px] font-black uppercase tracking-[0.2em] underline opacity-60 hover:opacity-100"
+                >
+                  Dismiss Alert
+                </button>
+              </div>
+            </motion.div>
+          )}
 
           {/* Artisan Story / Note */}
           <section className="bg-white rounded-[2.5rem] p-6 sm:p-10 ring-1 ring-slate-100">
@@ -449,6 +536,77 @@ export default function ItemDetailPage() {
                       </Button>
                     </form>
                   )}
+                </div>
+              )}
+            </section>
+          )}
+
+          {/* Verifier Assessment (Verifier Only) */}
+          {isVerifier && (
+            <section className="rounded-[2.5rem] bg-emerald-950 p-10 text-white shadow-2xl ring-1 ring-emerald-900 animate-in slide-in-from-bottom-6 duration-1000">
+              <div className="flex items-center gap-4 mb-8">
+                <div className="h-12 w-12 rounded-2xl bg-emerald-500/20 flex items-center justify-center border border-emerald-500/30">
+                  <ShieldCheck className="h-6 w-6 text-emerald-400" />
+                </div>
+                <div>
+                  <h3 className="text-[10px] font-black uppercase tracking-[0.4em] text-emerald-400/80 mb-1">Verifier Laboratory</h3>
+                  <p className="font-display text-2xl font-black">Professional Assessment</p>
+                </div>
+              </div>
+
+              <p className="text-emerald-100/60 text-sm leading-relaxed mb-10 max-w-lg">
+                As an accredited Verifier, your role is to audit the provenance events and metadata matches.
+                Your vote directly influences the cryptographic trust score of this asset.
+              </p>
+
+              {/* Bug fix: show connect prompt when not authenticated */}
+              {!isConnected ? (
+                <div className="flex items-center gap-4 p-6 rounded-3xl bg-white/5 border border-emerald-500/20">
+                  <div className="h-10 w-10 rounded-2xl bg-amber-500/20 flex items-center justify-center shrink-0">
+                    <ShieldAlert className="h-5 w-5 text-amber-400" />
+                  </div>
+                  <div>
+                    <p className="font-black text-sm text-white uppercase tracking-widest">Authentication Required</p>
+                    <p className="text-emerald-100/50 text-xs mt-1">Connect your wallet or sign in via Google to cast a verdict on this asset.</p>
+                  </div>
+                </div>
+              ) : (
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <Button
+                    disabled={isSubmitting}
+                    onClick={() => handleVote(true)}
+                    className="h-20 rounded-3xl bg-emerald-500 hover:bg-emerald-400 text-emerald-950 font-black uppercase tracking-widest transition-all hover:scale-[1.02] shadow-xl shadow-emerald-500/20"
+                  >
+                    {isSubmitting ? (
+                      <div className="flex items-center gap-3">
+                        <Loader2 className="h-5 w-5 animate-spin" />
+                        <span>{isZkLogin ? "Generating Proof..." : "Casting Verdict..."}</span>
+                      </div>
+                    ) : (
+                      <>
+                        <ShieldCheck className="mr-3 h-5 w-5" />
+                        Vouch as Legit
+                      </>
+                    )}
+                  </Button>
+                  <Button
+                    disabled={isSubmitting}
+                    onClick={() => handleVote(false)}
+                    variant="outline"
+                    className="h-20 rounded-3xl border-2 border-red-500/50 hover:bg-red-500 hover:text-white text-red-400 font-black uppercase tracking-widest transition-all hover:scale-[1.02]"
+                  >
+                    {isSubmitting ? (
+                      <div className="flex items-center gap-3">
+                        <Loader2 className="h-5 w-5 animate-spin" />
+                        <span>{isZkLogin ? "Generating Proof..." : "Tagging Asset..."}</span>
+                      </div>
+                    ) : (
+                      <>
+                        <ShieldAlert className="mr-3 h-5 w-5" />
+                        Flag as Suspicious
+                      </>
+                    )}
+                  </Button>
                 </div>
               )}
             </section>

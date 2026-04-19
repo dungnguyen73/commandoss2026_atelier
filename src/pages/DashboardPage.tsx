@@ -261,7 +261,7 @@ function VerifierView() {
           </div>
           <h2 className="font-display text-3xl font-extrabold text-(--color-foreground)">Registry Inspector</h2>
           <p className="max-w-md text-sm text-muted-foreground mt-3 leading-relaxed">
-            Verify the provenance and authenticity of any Atelier piece by entering its unique topographic identifier. 
+            Verify the provenance and authenticity of any Atelier piece by entering its unique topographic identifier.
             <span className="block mt-2 font-bold text-(--color-primary)">Now supporting Verifier Verdicts: Cast your professional vote on any item to build community trust.</span>
           </p>
         </div>
@@ -333,7 +333,8 @@ export default function DashboardPage() {
       status: c.status || "Verified",
       createdAt: new Date(Number(c.created_at)).toLocaleDateString(),
       imageUrl,
-      artisanName: c.artisan_name
+      artisanName: c.artisan_name,
+      creator: c.creator // Added missing field for filtering
     };
   };
 
@@ -341,10 +342,24 @@ export default function DashboardPage() {
   const enhancedOwned = ownedCertificates.map(transformToCertItem);
   const enhancedRecent = recentCertificates.map(transformToCertItem);
 
-  // For Owners, we show items they own but did NOT create
-  const collectedCertificates = enhancedOwned.filter(
-    (c: any) => c.creator !== account?.address // This might need raw data check, but for now filtering is fine
-  );
+  // For Owners, we show items they own but did NOT create (Collected Masterpieces)
+  const collectedCertificates = useMemo(() => {
+    console.log("enhancedOwned", enhancedOwned);
+    let filtered = enhancedOwned.filter(
+      (c: any) => c.creator !== account?.address
+    );
+    if (enhancedOwned.length === 0) {
+      filtered = enhancedCreated.filter(
+        (c: any) => c.creator !== account?.address
+      );
+    }
+    console.log("[Dashboard] Filtering Collection:", {
+      totalOwned: enhancedOwned.length,
+      collected: filtered.length,
+      address: account?.address
+    });
+    return filtered;
+  }, [enhancedOwned, account?.address]);
 
   const handleCreateProfile = async () => {
     setIsSettingUp(true);
@@ -523,7 +538,7 @@ export default function DashboardPage() {
         {activeRole === "Owner" && (
           <OwnerView
             account={account}
-            certificates={enhancedOwned}
+            certificates={collectedCertificates}
             isLoading={isLoadingOwned}
             error={errorOwned}
           />

@@ -41,6 +41,7 @@ export function useOwnedCertificates(address?: string) {
         }
 
         const data = body.result.data || [];
+        console.log(`[useOwnedCertificates] RPC Response (${address}):`, data);
         allObjects.push(...data);
         
         cursor = body.result.nextCursor;

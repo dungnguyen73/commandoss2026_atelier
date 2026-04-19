@@ -164,12 +164,21 @@ export default function ItemDetailPage() {
     if (!id || !eventData.type || !eventData.location) return;
     setIsSubmitting(true);
     setActionError(null);
+
     try {
       const tx = new Transaction();
+
       addProvenanceEvent({
         package: ATELIER_PACKAGE_ID,
-        arguments: [id, eventData.type, eventData.location, eventData.note || "N/A"],
+        arguments: [
+          tx.object(id),           // 0: &mut ArtisanCertificate (cert)
+          eventData.type,          // 1: String (eventType)
+          eventData.location,      // 2: String (location)
+          eventData.note || "N/A", // 3: String (note)
+          // "0x6",        // 4: &Clock
+        ],
       })(tx);
+
       await execute(tx);
       setTimeout(() => refetch(), 2000);
       setActiveAction("none");

@@ -1,12 +1,5 @@
 
-/// The Atelier — SUI-based artisan authenticity and certificate verification.
-///
-/// An artisan mints an `ArtisanCertificate` object for each handmade piece.
-/// The certificate stores descriptive metadata alongside a `cert_hash` that is
-/// computed off-chain from the canonical field values and anchored here.
-/// Anyone can verify a piece's authenticity by recomputing the hash from the
-/// displayed data and comparing it to the on-chain value.
-///
+
 /// Ownership rules
 /// ---------------
 ///   • Only the current owner (initially the artisan) can call `add_provenance_event`

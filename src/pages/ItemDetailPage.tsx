@@ -195,12 +195,19 @@ export default function ItemDetailPage() {
     if (!id || !transferData.recipient) return;
     setIsSubmitting(true);
     setActionError(null);
+
     try {
       const tx = new Transaction();
       transferCertificate({
         package: ATELIER_PACKAGE_ID,
-        arguments: [id, transferData.recipient],
+        arguments: [
+          id,                      // 0: ArtisanCertificate (pure ID)
+          transferData.recipient,  // 1: address (recipient)
+          // "0x6",                   // 2: Clock ID
+          // 0n,                      // 3: TxContext dummy
+        ],
       })(tx);
+
       await execute(tx);
       setTimeout(() => refetch(), 2000);
       setActiveAction("none");

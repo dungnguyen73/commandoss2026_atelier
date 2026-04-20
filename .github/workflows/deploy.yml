@@ -38,7 +38,12 @@ jobs:
       - name: Build
         run: npm run build
         env:
-          VITE_ATELIER_PACKAGE_ID: ${{ secrets.VITE_ATELIER_PACKAGE_ID || vars.VITE_ATELIER_PACKAGE_ID || '0xb1b63cf15e0fe6c5fde1e9f6a39d33ec9e5261005a745520cf1b0429cef0f738' }}
+          VITE_ATELIER_PACKAGE_ID: ${{ secrets.VITE_ATELIER_PACKAGE_ID || vars.VITE_ATELIER_PACKAGE_ID || '0x8e8f602018b060e81101224c04e29008cb617d405aff22e65f08ba992d151e99' }}
+          VITE_VERIFICATION_REGISTRY_ID: ${{ secrets.VITE_VERIFICATION_REGISTRY_ID || vars.VITE_VERIFICATION_REGISTRY_ID || '0xcf807271e450140b683cb6c21a2956fff489380b8bd79dbbd81b26936c18501b' }}
+          VITE_GOOGLE_CLIENT_ID: ${{ secrets.VITE_GOOGLE_CLIENT_ID || vars.VITE_GOOGLE_CLIENT_ID || '181096219047-nk7mbuu8fb6t650ml10jf6f8b030ub6l.apps.googleusercontent.com' }}
+          VITE_ZK_REDIRECT_URI: "https://dungnguyen73.github.io/commandoss2026_atelier/auth/callback"
+          VITE_FULLNODE_URL: "https://fullnode.testnet.sui.io"
+          VITE_PROVER_URL: "https://prover-dev.mystenlabs.com/v1"
 
       - name: Setup Pages
         uses: actions/configure-pages@v5
